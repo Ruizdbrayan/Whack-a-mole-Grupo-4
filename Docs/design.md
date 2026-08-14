@@ -490,10 +490,3 @@ Plano correspondiente al diagrama de quinto nivel de la sección discreta del ci
 
 
 ![Plano del diagrama de quinto nivel de la sección discreta](../images/discreto.png)
-
-
-### FPGA
-
-Diagrama de quinto nivel correspondiente a la implementación lógica en la FPGA.
-
-![Plano del diagrama de quinto nivel de la implementación lógica](../images/fpga.png).
