@@ -242,8 +242,8 @@ Tabla de acierto
 
 | Estado actual | Acierto | Fallo |  Siguiente estado | Acción | 
 | ------------ | ------------ | ------------ | ------------ | 
-| 00      | 0      | 0      |  00      | Inicio      | 
-| 00      | 1      | 0      |  00      | Mantiene el valor     | 
+| 00      | 0      | 0      | 00      | Inicio      | 
+| 00      | 1      | 0      | 00      | Mantiene el valor     | 
 | 00      | 0      | 1      | 01      | Incremento fallo en 1      | 
 | 01      | 1      | 0      | 00      | Reset de fallo acumulado      | 
 | 01      | 0      | 1      | 10      | Incremento fallo en 1      | 
