@@ -398,5 +398,87 @@ De esta forma, el temporizador permite aumentar progresivamente la dificultad de
 
 
 
+---
+
+### Receptor UART
+
+#### a) Diagrama modular
+
+Este módulo corresponde al bloque encargado de recibir la señal `Siguiente_topo` y, a partir de ella, seleccionar una de las ocho posiciones disponibles para representar la nueva posición del topo.
+
+Internamente, el módulo utiliza contadores, comparadores, un multiplexor de 8 entradas y un registro de salida.
+
+![Diagrama modular del receptor UART](../images/receptor_uart.png)
+
+#### b) Objetivo del módulo
+
+El objetivo de este módulo es generar el vector `LED_Encendido[7:0]` que determina cuál de las ocho posiciones del juego debe encontrarse activa.
+
+Cada vez que se recibe la señal `Siguiente_topo`, el módulo inicia el proceso interno necesario para seleccionar una nueva posición. Para ello, recibe la información de manera serial y, mediante un registro de desplazamiento, almacena progresivamente los bits recibidos y los convierte a un formato paralelo, permitiendo su procesamiento dentro del sistema. Una vez completada la recepción, el valor obtenido se almacena y posteriormente se entrega mediante la salida `LED_Encendido[7:0]`.
+
+De esta manera, el módulo transforma una señal de control unitaria en un vector de 8 bits utilizado posteriormente para controlar el arreglo de LEDs del juego.
+
+#### c) Entradas
+
+| Entrada | Descripción |
+|---|---|
+| `Siguiente_topo` | Señal binaria que indica el dato que se debe guardar en el registro. |
+| `CLK` | Señal de reloj utilizada internamente por los contadores del módulo. |
+| `Rst` | Señal de reinicio general utilizada para devolver los elementos secuenciales a su condición inicial. |
+
+La entrada principal de control del módulo es `Siguiente_topo`. Las señales `CLK` y `Rst` corresponden a señales generales necesarias para el funcionamiento secuencial del circuito.
+
+#### d) Salidas
+
+| Salida | Descripción |
+|---|---|
+| `LED_Encendido[7:0]` | Vector de 8 bits que indica cuál de las ocho posiciones del topo se encuentra activa. |
 
 
+La salida utiliza una representación de tipo **one-hot**, donde solamente uno de los ocho bits debe encontrarse activo para representar una posición determinada.
+
+#### e) Relación con otros módulos
+
+El módulo recibe la señal Siguiente_topo desde el emisor UART. Esta señal proporciona de manera serial los datos correspondientes a la nueva posición del topo. Los bits recibidos se almacenan progresivamente, donde posteriormente se disponen para ser utilizados en la selección de la nueva posición del topo.
+
+Una vez realizada la selección, el módulo genera LED_Encendido[7:0]. Este vector se envía al módulo indicador de posición mediante LEDs, donde cada bit controla una de las ocho posiciones físicas disponibles.
+
+De esta manera, el módulo funciona como una etapa intermedia entre la lógica encargada de solicitar un nuevo topo y el circuito encargado de mostrar físicamente su posición.
+
+#### f) Explicación de funcionamiento
+
+El funcionamiento comienza cuando se recibe la señal Siguiente_topo.
+
+Esta señal es evaluada mediante el comparador de entrada. Cuando se detecta la condición correspondiente, se genera internamente la señal start, utilizada para iniciar el proceso de selección de una nueva posición.
+
+El módulo dispone de un contador principal sincronizado mediante CLK. El valor count[28:0] producido por este contador es enviado a un comparador.
+
+El comparador utiliza el valor del contador y un valor de referencia para generar la señal interna ticks. Esta señal sirve como referencia para un segundo contador encargado de generar el Valor numerico.
+
+El Valor numerico determina cuál de las ocho entradas disponibles en el multiplexor debe ser seleccionada.
+
+El multiplexor de 8 entradas contiene las diferentes posibilidades para LED_Encendido[7:0]. De acuerdo con el valor de selección recibido, una de estas combinaciones es enviada hacia el registro.
+
+La señal interna enabler controla la actualización del registro. Cuando se habilita el registro, el valor seleccionado por el multiplexor queda almacenado.
+
+Finalmente, el contenido del registro se presenta en la salida.
+
+El valor permanece almacenado hasta que el módulo realiza una nueva selección, permitiendo que la posición del topo se mantenga estable durante el intervalo correspondiente.
+
+#### g) Diseño
+
+## Quinto nivel 
+
+### Discreto
+
+Plano correspondiente al diagrama de quinto nivel de la sección discreta del circuito.
+
+
+![Plano del diagrama de quinto nivel de la sección discreta](../images/discreto.png)
+
+
+### FPGA
+
+Diagrama de quinto nivel correspondiente a la implementación lógica en la FPGA.
+
+![Plano del diagrama de quinto nivel de la implementación lógica](../images/fpga.png).
