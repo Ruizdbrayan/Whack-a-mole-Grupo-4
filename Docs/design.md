@@ -159,7 +159,7 @@ Cada señal `LED_Encendido_n` controla directamente el LED asociado a la posici�
 
 Este módulo corresponde al bloque encargado de administrar los **aciertos, fallos totales y fallos consecutivos** producidos durante la partida. Además, permite determinar cuándo el jugador alcanza tres fallos consecutivos para generar una señal hacia el controlador principal.
 
-![Diagrama modular del administrador de puntajes](../images/indicador_leds.png)
+![Diagrama modular del administrador de puntajes](../images/puntaje.png)
 #### b) Objetivo del módulo
 
 El objetivo del módulo es llevar el registro de los resultados obtenidos por el jugador durante la partida.
