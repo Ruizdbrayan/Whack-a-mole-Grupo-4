@@ -85,4 +85,58 @@ Q0(n+1) = Q1(n) XOR Q2(n)
 Q1(n+1) = Q0(n)
 Q2(n+1) = Q1(n)
 
+---
+
+### Indicador de posición mediante LEDs
+
+#### b) Diagrama modular / Diseño 
+
+Este módulo corresponde al bloque encargado de representar visualmente la posición del topo activo mediante un arreglo de 8 LEDs controlados individualmente por la FPGA.
+
+![Diagrama modular del indicador de posición](indicador_leds.png)
+
+#### c) Objetivo del módulo
+
+El objetivo de este módulo es indicar visualmente cuál de las **8 posiciones posibles del topo** se encuentra activa durante el desarrollo de la partida.
+
+Para realizar esta función se utilizan 8 LEDs independientes, donde cada LED representa una posición diferente dentro del juego. La FPGA controla individualmente cada una de las salidas, permitiendo encender únicamente el LED correspondiente a la posición seleccionada.
+
+Cada LED se conecta en serie con una resistencia de **330 Ω**, utilizada para limitar la corriente que circula a través del dispositivo y proteger tanto el LED como la salida de la FPGA.
+
+#### d) Entradas
+
+| Entrada | Descripción |
+|---|---|
+| `LED_Encendido_0` | Señal de control proveniente de la FPGA para activar el LED 0. |
+| `LED_Encendido_1` | Señal de control proveniente de la FPGA para activar el LED 1. |
+| `LED_Encendido_2` | Señal de control proveniente de la FPGA para activar el LED 2. |
+| `LED_Encendido_3` | Señal de control proveniente de la FPGA para activar el LED 3. |
+| `LED_Encendido_4` | Señal de control proveniente de la FPGA para activar el LED 4. |
+| `LED_Encendido_5` | Señal de control proveniente de la FPGA para activar el LED 5. |
+| `LED_Encendido_6` | Señal de control proveniente de la FPGA para activar el LED 6. |
+| `LED_Encendido_7` | Señal de control proveniente de la FPGA para activar el LED 7. |
+
+Cada entrada corresponde a una salida digital independiente de la FPGA.
+
+#### e) Salidas
+
+Las salidas de este módulo son de tipo visual. El LED encendido representa directamente la posición en la que se encuentra el topo activo durante la partida.
+
+#### f) Relación con otros módulos
+
+Este módulo se encuentra directamente relacionado con el sistema de control implementado en la FPGA. La FPGA recibe la información correspondiente a la posición que debe ocupar el topo y, a partir de esta información, genera las señales `LED_Encendido_0` hasta `LED_Encendido_7`.
+
+Cada una de estas señales controla una posición específica del arreglo de LEDs. De esta manera, el valor de posición determinado por los módulos anteriores se transforma en una indicación visual para el jugador.
+
+El módulo también se relaciona indirectamente con el sistema de botones del juego, ya que el LED activo determina cuál de los botones debe presionar el jugador para registrar un acierto.
+
+#### g) Explicación de funcionamiento
+
+El circuito está compuesto por **8 LEDs**, cada uno conectado a una salida independiente de la FPGA mediante una resistencia de **330 Ω**.
+
+Cada señal `LED_Encendido_n` controla directamente el LED asociado a la posición `n`. Cuando la FPGA coloca una de estas señales en nivel lógico alto, circula corriente desde la salida de la FPGA a través de la resistencia de 330 Ω y posteriormente a través del LED hacia tierra.
+
+
+
+
 
