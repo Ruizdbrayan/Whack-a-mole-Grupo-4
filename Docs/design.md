@@ -13,6 +13,21 @@ Para el diagrama de segundo nivel se manejan dos señales de CLK independientes,
 
 ![Diagrama de Bloques de Segundo Nivel](../images/nivel2.png)
 
+## Tercer Nivel: 
+Para el tercer se especificaron los bloques internos dentro del circuito discreto como de la FPGA. El primero consta de un bloque "Temporizador Generador Topo" que genera la señal de reloj para "Generador Topo Aleatorio", el cual también recibe señales "Rst_LSFR", que lo devuelve al estado inicial, e "Interruptores", la cual define el estado inicial. El bloque "Transmisor UART" transforma la señal "Topo_Generado", producida por "Generador Topo Aleatorio", en una señal serial para transmitirla hacia "Receptor UART" donde se procesa la señal para ser utlizada en la FPGA.
+
+El bloque "Receptor UART" produce una señal de salida "LED_Encendido" que se utiliza en el bloque "Circuito LEDs" para encender el LED correspondiente al topo generado en los bloques anteriores; también se utiliza en bloque "Verificador de Golpe" que compara esta señal con la señal "Botones" que proviene de "Circuito Botones", por medio de un arreglo de botones, luego de ser procesada por el sistema de antirebotes de "Receptor Botones".
+
+"Verificador de Golpe" envía 2 señales "Golpe_incorrecto" y "Golpe_correcto" hacia la máquina de estados "Controlador". Esta genera las señales "Siguiente_Topo", "Disminuir_Temporizador", "Rst_LSFR", "Sumar_Fallo", "Sumar_Acierto", y "Rst_Fallos"; y, además, recibe las señales "rst", "Timeout", y "3_Fallos". Como su nombre indica, este bloque se encarga de controlar a los bloques "Temporizador" y "Administrador de Puntajes".
+
+El primero mencionado se encarga de la lógica de tiempo por ronda, la señal "Siguiente_Topo" activa el "Contador" que luego se compara con el tiempo actual de ronda seleccionado en el MUX de 10 entradas por la señal "Disminuir_Temporizador", donde si la señal del "Contador" es igual a la del MUX, el bloque Comparador envía en alto la señal de "Timeout" hacia la FSM.
+
+El bloque "Administrador de Puntajes", utiliza 3 sumadores y 3 registros para mantener el marcador de aciertos, fallos totales y fallos consecutivos, esto por medio de las señales "Sumar_Fallo" y "Sumar_Acierto", los 2 primeros, a su vez, reciben la señal "rst" para reiniciar los registros a 0. La señal "Fallos_C" producida por el registro de fallos consecutivos se compara con una señal de valor "3", con lo cual se genera una señal "3_Fallos" que representa la condición de fin de juego de fallos consecutivos, también genera la señal "Estado_Partida" que muestra si el juego está activo o no. Los registros de acierto y fallo producen señales "Aciertos" y "Fallos", respectivamente, los cuales se conectan al bloque "Displays 7 Segmentos" donde se tratan para mostrar los resultados en displays de 7 segmentos.
+
+
+![Diagrama de Bloques de Tercer Nivel](../images/nivel3.png)
+
+
 ## Cuarto Nivel
 
 
@@ -259,7 +274,7 @@ Este módulo corresponde al bloque encargado de recibir y validar las señales p
 
 Cada botón dispone de una arquitectura independiente compuesta por un registro, un contador, un comparador y una compuerta AND.
 
-![Diagrama modular del receptor de botones](../images/receptor_botones.png)
+![Diagrama modular del receptor de botones](../images/recepto_botones.png)
 
 #### b) Objetivo del módulo
 
