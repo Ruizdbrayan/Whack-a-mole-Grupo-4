@@ -18,11 +18,11 @@ Para el diagrama de segundo nivel se manejan dos señales de CLK independientes,
 
 ### Generador pseudoaleatorio de 3 bits
 
-#### a) Diagrama
+#### a) Diagrama / Diseño 
 
 Este módulo corresponde al bloque encargado de generar la posición pseudoaleatoria utilizada posteriormente por el sistema para determinar cuál topo debe activarse.
 
-![Diagrama modular del generador pseudoaleatorio](generador_pseudoaleatorio.pf)
+![Diagrama modular del generador pseudoaleatorio](../images/generador_pseudoaleatorio.png)
 
 #### b) Objetivo del módulo
 
@@ -93,7 +93,7 @@ Q2(n+1) = Q1(n)
 
 Este módulo corresponde al bloque encargado de representar visualmente la posición del topo activo mediante un arreglo de 8 LEDs controlados individualmente por la FPGA.
 
-![Diagrama modular del indicador de posición](indicador_leds.pf)
+![Diagrama modular del indicador de posición](../images/indicador_leds.png)
 
 #### b) Objetivo del módulo
 
@@ -118,7 +118,7 @@ Cada LED se conecta en serie con una resistencia de **330 Ω**, utilizada para l
 
 Cada entrada corresponde a una salida digital independiente de la FPGA.
 
-####d) Salidas
+#### d) Salidas
 
 Las salidas de este módulo son de tipo visual. El LED encendido representa directamente la posición en la que se encuentra el topo activo durante la partida.
 
@@ -144,8 +144,7 @@ Cada señal `LED_Encendido_n` controla directamente el LED asociado a la posici�
 
 Este módulo corresponde al bloque encargado de administrar los **aciertos, fallos totales y fallos consecutivos** producidos durante la partida. Además, permite determinar cuándo el jugador alcanza tres fallos consecutivos para generar una señal hacia el controlador principal.
 
-![Diagrama modular del administrador de puntajes](administrador_puntajes.pf)
-
+![Diagrama modular del administrador de puntajes](../images/indicador_leds.png)
 #### b) Objetivo del módulo
 
 El objetivo del módulo es llevar el registro de los resultados obtenidos por el jugador durante la partida.
@@ -225,7 +224,7 @@ Cuando ambos valores son iguales, el comparador activa la señal, esta señal es
 
 Por lo tanto, el módulo no solamente lleva el puntaje general de la partida, sino que también permite detectar una de las condiciones utilizadas para determinar su finalización.
 
-#### h) Diseño
+#### g) Diseño
 ##Tabla de verdad de aciertos
 Tabla de acierto
 | Estado actual | Acierto | Siguiente estado | Acción | 
@@ -249,6 +248,79 @@ Tabla de acierto
 | 10 | 1 | 0 | 00 | Reset de fallo acumulado |
 | 10 | 0 | 1 | 11 | Incremento fallo en 1 |
 | 11 | 0 | 1 | 11 | 3 fallos/reset |
+
+---
+
+### Receptor de botones
+
+#### a) Diagrama modular
+
+Este módulo corresponde al bloque encargado de recibir y validar las señales provenientes de los botones físicos del juego. Su función principal es evitar que cambios rápidos o rebotes mecánicos en los botones sean interpretados como pulsaciones válidas.
+
+Cada botón dispone de una arquitectura independiente compuesta por un registro, un contador, un comparador y una compuerta AND.
+
+![Diagrama modular del receptor de botones](../images/receptor_botones.png)
+
+#### b) Objetivo del módulo
+
+El objetivo del módulo es recibir las señales generadas por los botones físicos y producir una señal estable y validada que pueda ser utilizada de forma segura por los demás módulos implementados en la FPGA.
+
+Debido al comportamiento mecánico de los pulsadores, al presionar o liberar un botón pueden producirse múltiples cambios rápidos entre los niveles lógicos `0` y `1`. Estos cambios pueden ser interpretados erróneamente por el sistema como varias pulsaciones.
+
+Para evitar este problema, el receptor verifica que la señal del botón permanezca estable durante un período mínimo de **0,1 s** antes de considerarla válida.
+
+#### c) Entradas
+
+| Entrada | Descripción |
+|---|---|
+| `Boton_precionado` | Señal digital proveniente del botón físico. |
+| `CLK` | Señal de reloj de 100 MHz de la FPGA utilizada para actualizar el registro y el contador. |
+| `Rst` | Señal de reinicio utilizada para devolver el registro y el contador a su condición inicial. |
+
+El sistema utiliza una arquitectura independiente para cada uno de los botones disponibles en el juego.
+
+#### d) Salidas
+
+| Salida | Descripción |
+|---|---|
+| `Botones` | Señal del botón después de ser almacenada, temporizada y validada. |
+
+La salida `Botones` solamente representa una pulsación activa cuando la entrada correspondiente ha permanecido estable durante el tiempo establecido.
+
+#### e) Relación con otros módulos
+
+El receptor de botones funciona como una etapa intermedia entre los botones físicos del juego y los módulos digitales encargados de procesar las acciones realizadas por el jugador.
+
+Las señales físicas provenientes de los botones ingresan al receptor mediante `Boton_precionado`. Después del proceso de validación, se genera `Botones`, que puede ser utilizada por el módulo encargado de determinar si el botón presionado corresponde con la posición del topo activo.
+
+De esta forma, los módulos posteriores no trabajan directamente con las señales provenientes de los pulsadores, sino con señales previamente estabilizadas y validadas.
+
+El módulo utiliza el reloj interno de **100 MHz** de la FPGA como referencia temporal para determinar cuánto tiempo ha permanecido estable una señal.
+
+#### f) Explicación de funcionamiento
+
+El funcionamiento comienza cuando la señal `Boton_precionado`, proveniente de un botón físico, ingresa al registro. El registro almacena el estado actual del botón y genera la señal interna `Btn_reg`.
+
+A partir de este valor, un contador determina durante cuánto tiempo se ha mantenido estable la señal. Mientras `Btn_reg` conserve el mismo estado, el contador continúa incrementando su valor.
+
+Si se detecta un cambio en el estado del botón antes de completar el tiempo establecido, el contador se reinicia. De esta manera, los cambios rápidos producidos por el rebote mecánico no llegan a ser considerados como una entrada válida.
+
+Para aceptar una pulsación, el valor debe permanecer estable durante al menos **0,1 s**. El contador se conecta a un comparador encargado de determinar cuándo se ha alcanzado el número de ciclos de reloj correspondiente a dicho intervalo.
+
+Cuando se cumple esta condición, el comparador activa la señal interna `valido`.
+
+Finalmente, la señal `valido` se combina mediante una compuerta AND con el valor almacenado del botón:
+
+```text
+Botones = Btn_reg AND valido
+```
+Por lo tanto, Botones solamente se activa cuando el botón se encuentra presionado y su estado ha permanecido estable durante el período requerido.
+
+Este procedimiento permite filtrar los rebotes producidos por los botones físicos y entregar al resto del sistema una señal estable para el procesamiento de las acciones del jugador.
+
+#### g) Diseño
+
+
 
 
 
