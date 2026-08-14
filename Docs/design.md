@@ -19,7 +19,7 @@ Para el diagrama de segundo nivel se manejan dos señales de CLK independientes,
 
 ### Generador pseudoaleatorio de 3 bits
 
-#### b) Diagrama modular
+#### b) Diagrama
 
 Este módulo corresponde al bloque encargado de generar la posición pseudoaleatoria utilizada posteriormente por el sistema para determinar cuál topo debe activarse.
 
