@@ -259,7 +259,7 @@ Este módulo corresponde al bloque encargado de recibir y validar las señales p
 
 Cada botón dispone de una arquitectura independiente compuesta por un registro, un contador, un comparador y una compuerta AND.
 
-![Diagrama modular del receptor de botones](../images/receptor_botones.png)
+![Diagrama modular del receptor de botones](../images/recepto_botones.png)
 
 #### b) Objetivo del módulo
 
