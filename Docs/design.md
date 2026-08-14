@@ -322,7 +322,79 @@ Este procedimiento permite filtrar los rebotes producidos por los botones físic
 
 
 
+---
 
+### Temporizador
+
+#### a) Diagrama modular
+
+El módulo temporizador se encarga de controlar el tiempo durante el cual permanece activa cada posición del topo. Para ello utiliza un contador, un multiplexor de 10 entradas y un comparador.
+
+El multiplexor permite seleccionar diferentes tiempos de permanencia, mientras que el comparador determina cuándo el contador ha alcanzado el tiempo seleccionado y genera la señal `Carga`.
+
+![Diagrama modular del temporizador](../images/temporizador.png)
+
+#### b) Objetivo del módulo
+
+El objetivo de este módulo es establecer el tiempo disponible para que el jugador responda ante la aparición de cada topo.
+
+El temporizador comienza su conteo cuando recibe la señal `Siguiente_topo`. El valor alcanzado por el contador es comparado con un valor de referencia seleccionado mediante un multiplexor de 10 entradas.
+
+A medida que avanza la partida, la entrada `Disminuir_Temporizador[4:0]` permite seleccionar tiempos progresivamente menores, aumentando de esta manera la dificultad del juego.
+
+El tiempo máximo establecido es de **1,5 s**, mientras que el tiempo mínimo es de **0,5 s**.
+
+#### c) Entradas
+
+| Entrada | Descripción |
+|---|---|
+| `CLK` | Señal de reloj utilizada como referencia para incrementar el contador. |
+| `Siguiente_topo` | Señal que inicia o reinicia el conteo correspondiente al tiempo de aparición de un nuevo topo. |
+| `Disminuir_Temporizador[4:0]` | Señal de selección que determina cuál de los tiempos disponibles en el multiplexor será utilizado como límite del temporizador. |
+| `Rst` | Señal de reinicio general que devuelve el contador a su condición inicial. |
+
+#### d) Salidas
+
+| Salida | Descripción |
+|---|---|
+| `Carga` | Señal que se activa cuando el contador alcanza el tiempo seleccionado por el multiplexor. |
+
+La señal `Carga` indica al resto del sistema que el intervalo asignado al topo actual ha finalizado.
+
+#### e) Relación con otros módulos
+
+El temporizador se relaciona principalmente con el controlador general del juego y con los módulos encargados de actualizar la posición del topo.
+
+La señal `Siguiente_topo` indica al temporizador que debe comenzar el intervalo correspondiente a una nueva posición.
+
+Por otra parte, `Disminuir_Temporizador[4:0]` permite modificar progresivamente el tiempo disponible. De esta manera, conforme avanza la partida, el sistema puede seleccionar un intervalo menor y aumentar la velocidad con la que aparecen los topos.
+
+Una vez que el contador alcanza el valor correspondiente al tiempo seleccionado, el comparador genera la señal `Carga`. Esta señal se envía a los módulos que requieren conocer que el período del topo actual ha terminado para proceder con la siguiente actualización.
+
+#### f) Explicación de funcionamiento
+
+El módulo utiliza un contador que se incrementa utilizando la señal `CLK` como referencia temporal.
+
+Cuando comienza el período correspondiente a un nuevo topo, el contador inicia su conteo desde cero. Paralelamente, el multiplexor selecciona uno de los 10 valores de tiempo disponibles de acuerdo con la entrada `Disminuir_Temporizador[4:0]`.
+
+La salida del contador y la salida del multiplexor ingresan al comparador.
+
+El funcionamiento del comparador puede representarse mediante la condición:
+
+```text
+Carga = 1, si Contador >= Tiempo_seleccionado
+Carga = 0, si Contador < Tiempo_seleccionado
+```
+
+Mientras el contador sea menor que el valor seleccionado, Carga permanece en nivel lógico bajo.
+
+Cuando el contador alcanza el valor establecido por el multiplexor, el comparador activa Carga, indicando que el tiempo disponible para el topo actual ha finalizado.
+
+El sistema dispone de 10 niveles de tiempo, permitiendo reducir progresivamente el período de aparición de los topos. El mayor intervalo corresponde a 1,5 s y el menor a 0,5 s.
+
+De esta forma, el temporizador permite aumentar progresivamente la dificultad de la partida sin necesidad de modificar la frecuencia principal de reloj de la FPGA.
+
+#### g) Diseño
 
 
 
