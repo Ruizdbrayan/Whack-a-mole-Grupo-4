@@ -407,8 +407,6 @@ El sistema dispone de 10 niveles de tiempo, permitiendo reducir progresivamente 
 
 De esta forma, el temporizador permite aumentar progresivamente la dificultad de la partida sin necesidad de modificar la frecuencia principal de reloj de la FPGA.
 
-#### g) Diseño
-
 
 
 ---
