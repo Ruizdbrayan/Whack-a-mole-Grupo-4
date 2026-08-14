@@ -227,6 +227,29 @@ Cuando ambos valores son iguales, el comparador activa la señal, esta señal es
 Por lo tanto, el módulo no solamente lleva el puntaje general de la partida, sino que también permite detectar una de las condiciones utilizadas para determinar su finalización.
 
 #### h) Diseño
+##Tabla de verdad de aciertos
+Tabla de acierto
+| Estado actual | Acierto | Siguiente estado | Acción | 
+| ------------ | ------------ | ------------ | ------------ | 
+| 00      | 0      | 00      | Inicio      | 
+| 00      | 1      | 01      | Incremento en 1      | 
+| 01      | 0      | 01      | Mantiene el valor      | 
+| 01      | 1      | 10      | Incremento en 1      | 
+| 10      | 0      | 10      | Mantiene el valor      | 
+| 10      | 1      | 11      | Incremento en 1      | 
+
+##Tabla de verdad de fallos
+
+| Estado actual | Acierto | Fallo |  Siguiente estado | Acción | 
+| ------------ | ------------ | ------------ | ------------ | 
+| 00      | 0      | 0      |  00      | Inicio      | 
+| 00      | 1      | 0      |  00      | Mantiene el valor     | 
+| 00      | 0      | 1      | 01      | Incremento fallo en 1      | 
+| 01      | 1      | 0      | 00      | Reset de fallo acumulado      | 
+| 01      | 0      | 1      | 10      | Incremento fallo en 1      | 
+| 10      | 1      | 0      | 00      | Reset de fallo acumulado      |
+| 10      | 0      | 1      | 11      | Incremento fallo en 1      | 
+| 11      | 0      | 1      | 11      | 3 fallos/reset      | 
 
 
 
