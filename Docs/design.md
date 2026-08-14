@@ -4,7 +4,7 @@
 
 En este primer nivel describe la función básica del circuito como juego de Whack-a-mole, partiendo de un circuito que tiene como entradas 8 botones los cuales controlan el desarrollo de la partida y una señal de reset general y mediante un circuito discreto encargado de generar la posición de los topos en la salida se estaría reflejando dos señales principales, una para un arreglo de LED´s (ON=topo activo) y un display de 7 segmentos para poder visualizar tanto los aciertos acumulados a lo largo de la partida como los fallos seguidos
 
-![Diagrama de Bloques de Primer Nivel](diagrama_primer_nivel.png)
+![Diagrama de Bloques de Primer Nivel](diagrama_primer_nivel.pf)
 
 ---
 
@@ -12,20 +12,20 @@ En este primer nivel describe la función básica del circuito como juego de Wha
 
 Para el diagrama de segundo nivel se manejan dos señales de CLK independientes, uno para el circuito discreto generado con un 555 que tiene como función principal controlar e indicar cuando se activa un botón(los cuales están asignados al “topo activo dados por los LEDs”) y otro CLK para la FPGA establecido en 100MHz, el cual controla e brinda las señales de activación de los LEDs(“topos”)
 
-![Diagrama de Bloques de Segundo Nivel](diagrama_segundo_nivel.png)
+![Diagrama de Bloques de Segundo Nivel](diagrama_segundo_nivel.pf)
 
 ## Cuarto Nivel
 
 
 ### Generador pseudoaleatorio de 3 bits
 
-#### b) Diagrama
+#### a) Diagrama
 
 Este módulo corresponde al bloque encargado de generar la posición pseudoaleatoria utilizada posteriormente por el sistema para determinar cuál topo debe activarse.
 
-![Diagrama modular del generador pseudoaleatorio](generador_pseudoaleatorio.png)
+![Diagrama modular del generador pseudoaleatorio](generador_pseudoaleatorio.pf)
 
-#### c) Objetivo del módulo
+#### b) Objetivo del módulo
 
 El objetivo de este módulo es generar de manera continua una **secuencia binaria pseudoaleatoria de 3 bits**, la cual será utilizada por los módulos posteriores del sistema para seleccionar la posición del topo que debe activarse.
 
@@ -33,7 +33,7 @@ Para generar esta secuencia se utiliza un registro de desplazamiento con realime
 
 Las entradas `Seed_0`, `Seed_1` y `Seed_2` permiten establecer un estado inicial en el registro, mientras que `Rst` permite reiniciar los flip-flops.
 
-#### d) Entradas
+#### c) Entradas
 
 | Entrada | Descripción |
 |---|---|
@@ -45,7 +45,7 @@ Las entradas `Seed_0`, `Seed_1` y `Seed_2` permiten establecer un estado inicial
 Adicionalmente, el módulo utiliza una alimentación de **5 V** para el circuito discreto.
 
 
-#### e) Salidas
+#### d) Salidas
 
 | Salida | Descripción |
 |---|---|
@@ -59,7 +59,7 @@ Las tres señales en conjunto forman la salida pseudoaleatoria:
 
 Esta combinación binaria representa el estado actual del generador y puede ser utilizada por los siguientes módulos para determinar la posición correspondiente al topo activo.
 
-#### f) Relación con otros módulos
+#### e) Relación con otros módulos
 
 El generador pseudoaleatorio funciona como la fuente de selección de posiciones para el resto del sistema. Su salida de 3 bits es enviada al módulo encargado emisor del UART que enviara la informacion de manera serial al registro del receptor UART dentro de la fpga.
 
@@ -68,7 +68,7 @@ De esta manera, este módulo no activa directamente los LEDs, sino que proporcio
 
 Por su parte, el temporizador 555 genera de forma independiente la señal de reloj requerida por el registro de desplazamiento, por lo que la velocidad con la que cambia el valor pseudoaleatorio depende de la frecuencia configurada en este temporizador.
 
-#### g) Explicación de funcionamiento
+#### f) Explicación de funcionamiento
 
 El circuito está constituido por un temporizador 555, tres flip-flops tipo D (`U1`, `U2` y `U3`) y una compuerta XOR (`U5`).
 
@@ -84,18 +84,19 @@ Por lo tanto, el estado siguiente del registro puede expresarse como:
 Q0(n+1) = Q1(n) XOR Q2(n)
 Q1(n+1) = Q0(n)
 Q2(n+1) = Q1(n)
+```
 
----
+
 
 ### Indicador de posición mediante LEDs
 
-#### b) Diagrama modular / Diseño 
+#### a) Diagrama modular / Diseño 
 
 Este módulo corresponde al bloque encargado de representar visualmente la posición del topo activo mediante un arreglo de 8 LEDs controlados individualmente por la FPGA.
 
-![Diagrama modular del indicador de posición](indicador_leds.png)
+![Diagrama modular del indicador de posición](indicador_leds.pf)
 
-#### c) Objetivo del módulo
+#### b) Objetivo del módulo
 
 El objetivo de este módulo es indicar visualmente cuál de las **8 posiciones posibles del topo** se encuentra activa durante el desarrollo de la partida.
 
@@ -103,7 +104,7 @@ Para realizar esta función se utilizan 8 LEDs independientes, donde cada LED re
 
 Cada LED se conecta en serie con una resistencia de **330 Ω**, utilizada para limitar la corriente que circula a través del dispositivo y proteger tanto el LED como la salida de la FPGA.
 
-#### d) Entradas
+#### c) Entradas
 
 | Entrada | Descripción |
 |---|---|
@@ -118,11 +119,11 @@ Cada LED se conecta en serie con una resistencia de **330 Ω**, utilizada para l
 
 Cada entrada corresponde a una salida digital independiente de la FPGA.
 
-#### e) Salidas
+####d) Salidas
 
 Las salidas de este módulo son de tipo visual. El LED encendido representa directamente la posición en la que se encuentra el topo activo durante la partida.
 
-#### f) Relación con otros módulos
+#### e) Relación con otros módulos
 
 Este módulo se encuentra directamente relacionado con el sistema de control implementado en la FPGA. La FPGA recibe la información correspondiente a la posición que debe ocupar el topo y, a partir de esta información, genera las señales `LED_Encendido_0` hasta `LED_Encendido_7`.
 
@@ -130,11 +131,127 @@ Cada una de estas señales controla una posición específica del arreglo de LED
 
 El módulo también se relaciona indirectamente con el sistema de botones del juego, ya que el LED activo determina cuál de los botones debe presionar el jugador para registrar un acierto.
 
-#### g) Explicación de funcionamiento
+#### f) Explicación de funcionamiento
 
 El circuito está compuesto por **8 LEDs**, cada uno conectado a una salida independiente de la FPGA mediante una resistencia de **330 Ω**.
 
 Cada señal `LED_Encendido_n` controla directamente el LED asociado a la posición `n`. Cuando la FPGA coloca una de estas señales en nivel lógico alto, circula corriente desde la salida de la FPGA a través de la resistencia de 330 Ω y posteriormente a través del LED hacia tierra.
+
+
+
+### Administrador de puntajes
+
+#### a) Diagrama modular
+
+Este módulo corresponde al bloque encargado de administrar los **aciertos, fallos totales y fallos consecutivos** producidos durante la partida. Además, permite determinar cuándo el jugador alcanza tres fallos consecutivos para generar una señal hacia el controlador principal.
+
+![Diagrama modular del administrador de puntajes](administrador_puntajes.pf)
+
+#### b) Objetivo del módulo
+
+El objetivo del módulo es llevar el registro de los resultados obtenidos por el jugador durante la partida.
+
+El administrador mantiene tres valores principales: la cantidad de **aciertos acumulados**, la cantidad de **fallos acumulados** y la cantidad de **fallos consecutivos**.
+
+Los valores correspondientes a los aciertos y fallos acumulados son enviados al sistema de visualización mediante displays de 7 segmentos. Por otra parte, el registro de fallos consecutivos es comparado con el valor `3` para determinar cuándo el jugador ha cometido tres fallos consecutivos.
+
+Cuando esta condición se cumple, el módulo genera la señal `3_fallos`, que es enviada al controlador principal para indicar que debe finalizar o reiniciar la partida.
+
+#### c) Entradas
+
+| Entrada | Descripción |
+|---|---|
+| `Sumar_acierto` | Señal que indica que el jugador acertó la posición del topo y que debe incrementarse el registro de aciertos. |
+| `Sumar_fallo` | Señal que indica que el jugador cometió un fallo y que deben actualizarse los registros correspondientes. |
+| `Rst` | Señal utilizada para reiniciar los registros del administrador de puntajes. |
+
+####d) Salidas
+
+| Salida | Descripción |
+|---|---|
+| `Aciertos` | Valor almacenado en el registro de aciertos y enviado al sistema de visualización de 7 segmentos. |
+| `Fallos` | Valor almacenado en el registro de fallos y enviado al sistema de visualización de 7 segmentos. |
+| `3_fallos` | Señal que indica que se han alcanzado tres fallos consecutivos. |
+
+El registro de fallos consecutivos se utiliza internamente para determinar la condición de tres fallos y no necesita mostrarse directamente en los displays.
+
+#### e) Relación con otros módulos
+
+El administrador de puntajes recibe las señales `Sumar_acierto` y `Sumar_fallo` provenientes del módulo encargado de determinar si la acción realizada por el jugador corresponde a un acierto o a un fallo.
+
+Cuando se recibe `Sumar_acierto`, el módulo actualiza el registro de aciertos y reinicia el conteo de fallos consecutivos, debido a que un acierto interrumpe la secuencia de fallos.
+
+Cuando se recibe `Sumar_fallo`, se incrementa tanto el registro de fallos acumulados como el registro de fallos consecutivos.
+
+Los registros de aciertos y fallos se conectan con el módulo encargado de controlar los displays de 7 segmentos, permitiendo visualizar el puntaje durante la partida.
+
+Por otra parte, el registro de fallos consecutivos se conecta internamente con un comparador. Cuando este registro alcanza el valor `3`, se genera la señal `3_fallos`, la cual es enviada al controlador principal para indicar que se ha alcanzado la condición de finalización correspondiente.
+
+#### f) Explicación de funcionamiento
+
+El módulo utiliza tres registros independientes para almacenar los resultados de la partida:
+
+- **Registro de aciertos:** almacena la cantidad total de aciertos realizados por el jugador.
+- **Registro de fallos:** almacena la cantidad total de fallos realizados durante la partida.
+- **Registro de fallos consecutivos:** almacena únicamente la cantidad de fallos realizados de manera consecutiva.
+
+Cada registro posee un sumador asociado. La salida actual del registro se realimenta hacia su respectivo sumador, permitiendo incrementar el valor almacenado cuando se recibe la señal correspondiente.
+
+Cuando `Sumar_acierto` se activa, el registro de aciertos incrementa su valor en una unidad:
+
+```text
+Aciertos(n+1) = Aciertos(n) + 1
+```
+
+Al mismo tiempo, el registro de fallos consecutivos se reinicia, ya que el acierto rompe la secuencia de fallos consecutivos.
+
+Cuando Sumar_fallo se activa, se incrementa el registro de fallos totales:
+
+```text
+Fallos(n+1) = Fallos(n) + 1
+```
+
+También se incrementa el registro de fallos consecutivos:
+
+```text
+Fallos_consecutivos(n+1) = Fallos_consecutivos(n) + 1
+```
+
+El valor almacenado en el registro de fallos consecutivos se conecta a un comparador, el cual lo compara constantemente con el valor binario:
+
+```text
+3 = 2'b11
+```
+Cuando ambos valores son iguales, el comparador activa la señal, esta señal es enviada al controlador principal para indicar que el jugador ha alcanzado tres fallos consecutivos.
+
+Por lo tanto, el módulo no solamente lleva el puntaje general de la partida, sino que también permite detectar una de las condiciones utilizadas para determinar su finalización.
+
+#### h) Diseño
+##Tabla de verdad de aciertos
+Tabla de acierto
+| Estado actual | Acierto | Siguiente estado | Acción | 
+| ------------ | ------------ | ------------ | ------------ | 
+| 00      | 0      | 00      | Inicio      | 
+| 00      | 1      | 01      | Incremento en 1      | 
+| 01      | 0      | 01      | Mantiene el valor      | 
+| 01      | 1      | 10      | Incremento en 1      | 
+| 10      | 0      | 10      | Mantiene el valor      | 
+| 10      | 1      | 11      | Incremento en 1      | 
+
+##Tabla de verdad de fallos
+
+| Estado actual | Acierto | Fallo | Siguiente estado | Acción |
+| ------------ | ------------ | ------------ | ------------ | ------------ |
+| 00 | 0 | 0 | 00 | Inicio |
+| 00 | 1 | 0 | 00 | Mantiene el valor |
+| 00 | 0 | 1 | 01 | Incremento fallo en 1 |
+| 01 | 1 | 0 | 00 | Reset de fallo acumulado |
+| 01 | 0 | 1 | 10 | Incremento fallo en 1 |
+| 10 | 1 | 0 | 00 | Reset de fallo acumulado |
+| 10 | 0 | 1 | 11 | Incremento fallo en 1 |
+| 11 | 0 | 1 | 11 | 3 fallos/reset |
+
+
 
 
 
