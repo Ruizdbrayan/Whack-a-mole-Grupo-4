@@ -108,7 +108,7 @@ Q2(n+1) = Q1(n)
 
 Este módulo corresponde al bloque encargado de representar visualmente la posición del topo activo mediante un arreglo de 8 LEDs controlados individualmente por la FPGA.
 
-![Diagrama modular del indicador de posición](../images/indicador_leds.png)
+![Diagrama modular del indicador de posición](../images/indicador_leds.jpg)
 
 #### b) Objetivo del módulo
 
