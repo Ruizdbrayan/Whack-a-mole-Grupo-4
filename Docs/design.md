@@ -333,8 +333,6 @@ Por lo tanto, Botones solamente se activa cuando el botón se encuentra presiona
 
 Este procedimiento permite filtrar los rebotes producidos por los botones físicos y entregar al resto del sistema una señal estable para el procesamiento de las acciones del jugador.
 
-#### g) Diseño
-
 
 
 ---
@@ -480,7 +478,6 @@ Finalmente, el contenido del registro se presenta en la salida.
 
 El valor permanece almacenado hasta que el módulo realiza una nueva selección, permitiendo que la posición del topo se mantenga estable durante el intervalo correspondiente.
 
-#### g) Diseño
 
 ## Quinto nivel 
 
