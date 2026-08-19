@@ -23,7 +23,7 @@ module button_debouncer_receptor #(
 
     // Sincronizador de 2 etapas
     always_ff @(posedge clk or posedge rst) begin
-        if (!rst) begin
+        if (rst) begin
             button_sync_0 <= 8'b0;
             button_sync_1 <= 8'b0;
         end else begin
@@ -35,7 +35,7 @@ module button_debouncer_receptor #(
 
     // Logica Antirebotes
     always_ff @(posedge clk or posedge rst) begin
-        if (!rst) begin
+        if (rst) begin
             debounce_counter <= 0;
             boton_presionado <= 8'b0;
         end else begin
