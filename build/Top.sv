@@ -2,15 +2,16 @@ module top_whack_a_mole (
     input  logic        clk,
     input  logic        rst,
     input  logic        rst_LSFR,
+    input  logic        Topo_Generado,
     input  logic [7:0]  botones,
-    input  logic [7:0]  interruptores,
+    output logic        led_estado,
     output logic [7:0]  leds,
     output logic [6:0]  display_7seg,
-    output logic [3:0]  led_estado
+
 );
 
     // Señales internas
-    logic [7:0] topo_generado;
+    
     logic [7:0] led_encendido;
     logic [7:0] boton_presionado;
     logic [7:0] aciertos;
@@ -20,17 +21,7 @@ module top_whack_a_mole (
     logic golpe_correcto, golpe_incorrecto;
     logic sumar_fallo, sumar_acierto, rst_fallos;
     logic derrota;
-
-    // ===============================
-    // 🔹 Generador de topo aleatorio
-    // ===============================
-    generator_topo_aleatorio gen_topo (
-        .clk(clk),
-        .rst_LSFR(rst_LSFR),
-        .interruptores(interruptores),
-        .topo_generado(topo_generado)
-    );
-
+ 
     // ===============================
     // 🔹 Temporizador principal
     // ===============================
@@ -65,7 +56,6 @@ module top_whack_a_mole (
         .clk(clk),
         .rst(rst),
         .led_encendido(led_encendido),
-        .valor_numerico(), // opcional si usas valor numérico
         .topo_generado(topo_generado)
     );
 
