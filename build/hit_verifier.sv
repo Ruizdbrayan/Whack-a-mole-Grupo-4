@@ -9,7 +9,7 @@ module hit_verifier(
 
     always_comb begin
         comparacion = (boton_presionado == led_encendido);
-        switch (boton_presionado) begin
+        case (boton_presionado)
             8'b0000_0001,
             8'b0000_0010,
             8'b0000_0100,
@@ -31,7 +31,7 @@ module hit_verifier(
                 golpe_correcto = 1'b0;
                 golpe_incorrecto = 1'b0;
             end
-        end
+        endcase
 
     end
 
