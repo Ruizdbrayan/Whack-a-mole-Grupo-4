@@ -1,86 +1,163 @@
-module uart_receptor #(
-    parameter CLK_FREQ  = 100_000_000,
-    parameter BAUD_RATE = 9600
-)(
-    input  logic clk,
-    input  logic rst,
-    input  logic Topo_Generado,
-    output logic [7:0] LED_Encendido
+module Uart_Receptor (
+    input  logic       clk,
+    input  logic       reset,
+    input  logic       Topo_Generado,
+    input  logic       Siguiente_Topo,
+    output logic [7:0] Led_Encendido
 );
 
-    // ===============================
-    // Señales internas
-    // ===============================
-    logic [28:0] count_main;
-    logic [3:0]  bit_count;
-    logic [7:0]  registro;
-    logic        start, enabler, tick;
-    logic [7:0]  bit_select;
+    localparam BAUD_DIV = 100_000_000/90;
 
-    // ===============================
-    // 🔹 Contador principal
-    // ===============================
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst)
-            count_main <= 0;
+    logic [20:0] contador_clk;
+
+    logic recibir;
+    logic [3:0] contador_bits;
+
+    logic [2:0] registro;
+
+    logic tick;
+
+    logic topo_d;
+
+    wire start_detectado;
+
+    assign start_detectado = Topo_Generado && !topo_d;
+
+    //--------------------------------------------------
+    // Detector de flanco
+    //--------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (reset)
+            topo_d <= 0;
         else
-            count_main <= count_main + 1;
+            topo_d <= Topo_Generado;
     end
 
-    // ===============================
-    // 🔹 Comparador de inicio
-    // ===============================
-    assign start = (count_main == 0);
+    //--------------------------------------------------
+    // Receptor
+    //--------------------------------------------------
 
-    // ===============================
-    // 🔹 Comparador de ticks (baud rate)
-    // ===============================
-    localparam integer TICKS_PER_BIT = CLK_FREQ / BAUD_RATE;
-    assign tick = (count_main == TICKS_PER_BIT);
+    always_ff @(posedge clk) begin
 
-    // ===============================
-    // 🔹 Contador de bits
-    // ===============================
-    always_ff @(posedge clk or posedge rst) begin
-        if (tick)
-            bit_count <= 0;
-        else if (start)
-            bit_count <= 0;
-        else if (tick)
-            bit_count <= bit_count + 1;
-    end
+        if (reset) begin
 
-    // ===============================
-    // 🔹 Decoder one-hot de 8 entradas (selección de bit)
-    // ===============================
-    always_comb begin
-        case (bit_count)
-            3'd0: bit_select = 8'b00000001;
-            3'd1: bit_select = 8'b00000010;
-            3'd2: bit_select = 8'b00000100;
-            3'd3: bit_select = 8'b00001000;
-            3'd4: bit_select = 8'b00010000;
-            3'd5: bit_select = 8'b00100000;
-            3'd6: bit_select = 8'b01000000;
-            3'd7: bit_select = 8'b10000000;
-            default: bit_select = 8'b00000000;
-        endcase
-    end
+            contador_clk  <= 0;
+            recibir       <= 0;
+            contador_bits <= 0;
+            registro      <= 0;
+            tick          <= 0;
 
-    // ===============================
-    // 🔹Registro de salida
-    // ===============================
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst)
-            registro <= 8'b0;
-        else if (tick) begin
-            if (Topo_Generado)
-                registro <= registro | bit_select;
-            else
-                registro <= registro & ~bit_select;
         end
+        else begin
+
+            tick <= 0;
+
+            if (!recibir) begin
+
+                if (start_detectado) begin
+
+                    recibir       <= 1;
+                    contador_bits <= 0;
+                    contador_clk  <= BAUD_DIV/2;
+
+                end
+
+            end
+            else begin
+
+                if (contador_clk == 0) begin
+
+                    tick <= 1;
+
+                    contador_clk <= BAUD_DIV - 1;
+
+                    case (contador_bits)
+
+                        // Start
+                        0:
+                            contador_bits <= 1;
+
+                        // D1
+                        1: begin
+                            registro[0] <= Topo_Generado;
+                            contador_bits <= 2;
+                        end
+
+                        // D2
+                        2: begin
+                            registro[1] <= Topo_Generado;
+                            contador_bits <= 3;
+                        end
+
+                        // D3
+                        3: begin
+                            registro[2] <= Topo_Generado;
+                            contador_bits <= 4;
+                        end
+
+                        // Relleno
+                        4: contador_bits <= 5;
+                        5: contador_bits <= 6;
+                        6: contador_bits <= 7;
+
+                        // Fin
+                        7: begin
+                            contador_bits <= 0;
+                            recibir <= 0;
+                        end
+
+                        default: begin
+                            contador_bits <= 0;
+                            recibir <= 0;
+                        end
+
+                    endcase
+
+                end
+                else begin
+
+                    contador_clk <= contador_clk - 1;
+
+                end
+
+            end
+
+        end
+
     end
 
-    assign LED_Encendido = registro;
+    //--------------------------------------------------
+    // Decoder
+    //--------------------------------------------------
+
+    always_ff @(posedge clk) begin
+
+        if (reset) begin
+
+            Led_Encendido <= 8'b0000_0001;
+
+        end
+        else if (Siguiente_Topo) begin
+
+            case (registro)
+
+                3'b000: Led_Encendido <= 8'b0000_0001;
+                3'b001: Led_Encendido <= 8'b0000_0010;
+                3'b010: Led_Encendido <= 8'b0000_0100;
+                3'b011: Led_Encendido <= 8'b0000_1000;
+                3'b100: Led_Encendido <= 8'b0001_0000;
+                3'b101: Led_Encendido <= 8'b0010_0000;
+                3'b110: Led_Encendido <= 8'b0100_0000;
+                3'b111: Led_Encendido <= 8'b1000_0000;
+
+                default:
+                    Led_Encendido <= 8'b0000_0001;
+
+            endcase
+
+        end
+
+    end
 
 endmodule
