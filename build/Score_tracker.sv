@@ -7,9 +7,10 @@ module score_tracker (
     input  wire       sumar_fallo,
     output reg  [7:0] aciertos,
     output reg  [7:0] fallos,
-    output reg  [1:0] fallos_consecutivos,
     output wire       tres_fallos
 );
+
+    reg [1:0] fallos_consecutivos;
 
     // ------------------------------------------------------------------------
     // FUNCIÓN INTERNA: Incrementar BCD con saturación en 99 (8'h99)
