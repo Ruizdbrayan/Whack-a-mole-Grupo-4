@@ -1,6 +1,6 @@
-module Uart_Receptor (
+module uart_receptor (
     input  logic       clk,
-    input  logic       reset,
+    input  logic       rst,
     input  logic       Topo_Generado,
     input  logic       Siguiente_Topo,
     output logic [7:0] Led_Encendido
@@ -15,8 +15,6 @@ module Uart_Receptor (
 
     logic [2:0] registro;
 
-    logic tick;
-
     logic topo_d;
 
     wire start_detectado;
@@ -28,7 +26,7 @@ module Uart_Receptor (
     //--------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (reset)
+        if (rst)
             topo_d <= 0;
         else
             topo_d <= Topo_Generado;
@@ -40,18 +38,16 @@ module Uart_Receptor (
 
     always_ff @(posedge clk) begin
 
-        if (reset) begin
+        if (rst) begin
 
             contador_clk  <= 0;
             recibir       <= 0;
             contador_bits <= 0;
             registro      <= 0;
-            tick          <= 0;
 
         end
         else begin
 
-            tick <= 0;
 
             if (!recibir) begin
 
@@ -67,8 +63,6 @@ module Uart_Receptor (
             else begin
 
                 if (contador_clk == 0) begin
-
-                    tick <= 1;
 
                     contador_clk <= BAUD_DIV - 1;
 
@@ -133,7 +127,7 @@ module Uart_Receptor (
 
     always_ff @(posedge clk) begin
 
-        if (reset) begin
+        if (rst) begin
 
             Led_Encendido <= 8'b0000_0001;
 

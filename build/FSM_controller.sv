@@ -15,6 +15,12 @@ module fsm_controller (
     output logic siguiente_topo
 );
 
+    // =========================================================    
+    // CONTADOR PARA MANTENER LA DERROTA DURANTE 2 SEGUNDOS
+    // 100 MHz × 2 s = 200,000,000 ciclos
+    // =========================================================
+    logic [27:0] contador_derrota;
+
     always_ff @(posedge clk) begin
 
         if (rst) begin
@@ -24,7 +30,8 @@ module fsm_controller (
             rst_fallos             <= 0;
             derrota                <= 0;
             disminuir_temporizador <= 0;
-            siguiente_topo        <= 0;
+            siguiente_topo         <= 0;
+            contador_derrota      <= 0;
 
         end
 
@@ -37,57 +44,87 @@ module fsm_controller (
             sumar_fallo            <= 0;
             sumar_acierto          <= 0;
             rst_fallos             <= 0;
-            derrota                <= 0;
             disminuir_temporizador <= 0;
-            siguiente_topo        <= 0;
+            siguiente_topo         <= 0;
 
 
             // =================================================
-            // TRES FALLOS -> DERROTA
+            // ESTADO DE DERROTA
             // =================================================
 
-            if (tres_fallos) begin
+            if (derrota) begin
 
-                derrota    <= 1;
-                rst_fallos <= 1;
+                // Mantener la derrota durante 2 segundos
+                if (contador_derrota < 200_000_000 - 1) begin
+
+                    contador_derrota <= contador_derrota + 1;
+
+                end
+
+                else begin
+
+                    // Terminar derrota
+                    contador_derrota <= 0;
+                    derrota           <= 0;
+
+                    // Reiniciar fallos consecutivos
+                    rst_fallos        <= 1;
+
+                end
 
             end
 
-
             // =================================================
-            // TIMEOUT -> FALLO Y SIGUIENTE TOPO
-            // =================================================
-
-            if (timeout) begin
-
-                sumar_fallo     <= 1;
-                siguiente_topo <= 1;
-
-            end
-
-
-            // =================================================
-            // GOLPE CORRECTO
+            // JUEGO NORMAL
             // =================================================
 
-            if (golpe_correcto) begin
+            else begin
 
-                sumar_acierto          <= 1;
-                rst_fallos             <= 1;
-                disminuir_temporizador <= 1;
-                siguiente_topo         <= 1;
+                // ---------------------------------------------
+                // TRES FALLOS → DERROTA
+                // ---------------------------------------------
 
-            end
+                if (tres_fallos) begin
 
+                    derrota           <= 1;
+                    contador_derrota <= 0;
 
-            // =================================================
-            // GOLPE INCORRECTO
-            // =================================================
+                end
 
-            if (golpe_incorrecto) begin
+                // ---------------------------------------------
+                // TIMEOUT → FALLO Y SIGUIENTE TOPO
+                // ---------------------------------------------
 
-                sumar_fallo     <= 1;
-                siguiente_topo <= 1;
+                else if (timeout) begin
+
+                    sumar_fallo    <= 1;
+                    siguiente_topo <= 1;
+
+                end
+
+                // ---------------------------------------------
+                // GOLPE CORRECTO
+                // ---------------------------------------------
+
+                else if (golpe_correcto) begin
+
+                    sumar_acierto          <= 1;
+                    rst_fallos             <= 1;
+                    disminuir_temporizador <= 1;
+                    siguiente_topo         <= 1;
+
+                end
+
+                // ---------------------------------------------
+                // GOLPE INCORRECTO
+                // ---------------------------------------------
+
+                else if (golpe_incorrecto) begin
+
+                    sumar_fallo    <= 1;
+                    siguiente_topo <= 1;
+
+                end
 
             end
 
