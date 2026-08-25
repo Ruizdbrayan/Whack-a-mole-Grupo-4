@@ -4,9 +4,8 @@ module timer_module #(
     input  logic clk,
     input  logic rst,
     input  logic disminuir,
-    input logic siguiente_topo,
+    input  logic siguiente_topo,
     output logic timeout
-    
 );
 
     // =========================================================
@@ -16,8 +15,8 @@ module timer_module #(
     logic [31:0] valor_ref;
     logic [3:0] nivel_dificultad;
 
-    // Señal que indica que el contador llegó al límite
     logic fin_tiempo;
+    logic contando;
 
     // =========================================================
     // NIVEL DE DIFICULTAD
@@ -80,34 +79,41 @@ module timer_module #(
     always_ff @(posedge clk or posedge rst) begin
 
         if (rst) begin
-            count <= 0;
+            count   <= 0;
+            contando <= 0;
         end
 
-        else if (fin_tiempo) begin
-            count <= 0;
+        else if (siguiente_topo) begin
+            count    <= 0;
+            contando <= 1;
         end
 
-        else begin
-            count <= count + 1;
+        else if (contando) begin
+
+            if (fin_tiempo) begin
+                count    <= 0;
+                contando <= 0;
+            end
+
+            else begin
+                count <= count + 1;
+            end
+
         end
 
     end
 
     // =========================================================
-    // GENERACIÓN DE PULSOS
+    // GENERACIÓN DE PULSO DE TIMEOUT
     // =========================================================
     always_ff @(posedge clk or posedge rst) begin
 
         if (rst) begin
-            timeout        <= 0;
-            siguiente_topo <= 0;
+            timeout <= 0;
         end
 
         else begin
-
-            timeout        <= fin_tiempo;
-            siguiente_topo <= fin_tiempo;
-
+            timeout <= fin_tiempo && contando;
         end
 
     end
