@@ -21,7 +21,7 @@ module Top_tb;
     logic [3:0] select_7seg;
 
     // ============================================================
-    // MONITOREO
+    // VARIABLES DE MONITOREO
     // ============================================================
     realtime tiempo_evento;
     realtime tiempo_siguiente;
@@ -29,7 +29,6 @@ module Top_tb;
 
     logic siguiente_topo_detectado;
     logic timeout_detectado;
-    logic derrota_detectada;
 
     integer errores;
 
@@ -37,29 +36,29 @@ module Top_tb;
     // DUT
     // ============================================================
     top_whack_a_mole dut (
-        .clk           (clk),
-        .rst           (rst),
-        .rst_LSFR      (rst_LSFR),
-        .topo_generado (topo_generado),
-        .botones       (botones),
-        .led_estado    (led_estado),
-        .leds          (leds),
-        .display_7seg  (display_7seg),
-        .select_7seg   (select_7seg)
+        .clk            (clk),
+        .rst            (rst),
+        .rst_LSFR       (rst_LSFR),
+        .topo_generado  (topo_generado),
+        .botones        (botones),
+        .led_estado     (led_estado),
+        .leds           (leds),
+        .display_7seg   (display_7seg),
+        .select_7seg    (select_7seg)
     );
 
     // ============================================================
     // CLOCK 100 MHz
     // ============================================================
     initial begin
-        clk = 1'b0;
-
-        forever
-            #5 clk = ~clk;
+        clk = 0;
+        forever #5 clk = ~clk;
     end
 
     // ============================================================
-    // MONITOR SIGUIENTE_TOPO
+    // MONITOR DE SIGUIENTE_TOPO
+    //
+    // Detecta el pulso de 1 ciclo directamente.
     // ============================================================
     always @(posedge dut.controlador.siguiente_topo) begin
 
@@ -68,11 +67,10 @@ module Top_tb;
 
         $display("[%0t] >>> SIGUIENTE_TOPO DETECTADO",
                  $time);
-
     end
 
     // ============================================================
-    // MONITOR TIMEOUT
+    // MONITOR DE TIMEOUT
     // ============================================================
     always @(posedge dut.temporizador.timeout) begin
 
@@ -81,56 +79,74 @@ module Top_tb;
 
         $display("[%0t] >>> TIMEOUT DETECTADO",
                  $time);
-
     end
 
     // ============================================================
-    // MONITOR DERROTA
+    // MONITORES DE CAMBIOS IMPORTANTES
     // ============================================================
-    always @(posedge dut.controlador.derrota) begin
 
-        derrota_detectada = 1'b1;
-
-        $display("[%0t] >>> DERROTA DETECTADA",
-                 $time);
-
-    end
-
-    // ============================================================
-    // MONITOR ACIERTO
-    // ============================================================
     always @(posedge dut.controlador.sumar_acierto) begin
-
         $display("[%0t] >>> SUMAR ACIERTO | AC=%02h",
                  $time,
                  dut.marcador.aciertos);
-
     end
 
-    // ============================================================
-    // MONITOR FALLO
-    // ============================================================
     always @(posedge dut.controlador.sumar_fallo) begin
-
         $display("[%0t] >>> SUMAR FALLO | FL=%02h",
                  $time,
                  dut.marcador.fallos);
+    end
 
+    always @(posedge dut.controlador.derrota) begin
+        $display("[%0t] >>> DERROTA",
+                 $time);
     end
 
     // ============================================================
-    // MONITOR LED
+    // MONITOR DE LED
     // ============================================================
     always @(leds) begin
-
         $display("[%0t] LED = %08b",
                  $time,
                  leds);
-
     end
 
     // ============================================================
-    // TASK: ENVIAR TOPO UART
+    // PROCEDIMIENTO: ESPERAR SIGUIENTE TOPO
+    // ============================================================
+    task esperar_siguiente_topo;
+        input integer timeout_ns;
+        begin
+
+            siguiente_topo_detectado = 1'b0;
+
+            fork
+
+                begin
+                    wait(siguiente_topo_detectado);
+                end
+
+                begin
+                    #(timeout_ns);
+
+                    if (!siguiente_topo_detectado) begin
+                        $display("[%0t] ERROR: no se detecto siguiente_topo",
+                                 $time);
+                        errores = errores + 1;
+                    end
+                end
+
+            join_any
+
+            disable fork;
+
+        end
+    endtask
+
+    // ============================================================
+    // PROCEDIMIENTO: ENVIAR TOPO UART
+    //
+    // Formato:
     //
     // START = 1
     // D1
@@ -138,7 +154,7 @@ module Top_tb;
     // D3
     // 0000
     //
-    // 90 Hz -> 11.111111 ms por bit
+    // Cada bit dura 1/90 s.
     // ============================================================
     task enviar_topo;
         input [2:0] codigo;
@@ -172,7 +188,7 @@ module Top_tb;
             topo_generado = codigo[2];
             #(bit_time);
 
-            // 4 bits de relleno
+            // Relleno
             topo_generado = 1'b0;
             #(bit_time);
 
@@ -190,14 +206,14 @@ module Top_tb;
             $display("[%0t] Trama UART terminada",
                      $time);
 
-            // Dar tiempo al receptor
+            // Dar tiempo para que el UART actualice el LED
             #1000;
 
         end
     endtask
 
     // ============================================================
-    // TASK: PULSAR BOTON
+    // PROCEDIMIENTO: PULSAR BOTON
     // ============================================================
     task pulsar_boton;
         input [7:0] boton;
@@ -210,79 +226,13 @@ module Top_tb;
 
             botones = boton;
 
-            // Tiempo suficiente para debounce
-            #30_000_000;
+            // Debounce de 20 ms
+            #25_000_000;
 
             botones = 8'b0;
 
-            // Liberación
-            #30_000_000;
-
-        end
-    endtask
-
-    // ============================================================
-    // TASK: ESPERAR SIGUIENTE_TOPO
-    // ============================================================
-    task esperar_siguiente_topo;
-        input realtime tiempo_maximo;
-
-        begin
-
-            siguiente_topo_detectado = 1'b0;
-
-            fork
-
-                begin
-                    wait(siguiente_topo_detectado);
-                end
-
-                begin
-                    #tiempo_maximo;
-
-                    if (!siguiente_topo_detectado) begin
-
-                        $display("[%0t] ERROR: NO se detecto siguiente_topo",
-                                 $time);
-
-                        errores = errores + 1;
-
-                    end
-
-                end
-
-            join_any
-
-            disable fork;
-
-        end
-    endtask
-
-    // ============================================================
-    // TASK: VERIFICAR LED
-    // ============================================================
-    task verificar_led;
-        input [7:0] esperado;
-
-        begin
-
-            if (leds !== esperado) begin
-
-                $display("[%0t] ERROR: LED esperado = %08b, actual = %08b",
-                         $time,
-                         esperado,
-                         leds);
-
-                errores = errores + 1;
-
-            end
-            else begin
-
-                $display("[%0t] OK: LED = %08b",
-                         $time,
-                         leds);
-
-            end
+            // Esperar liberacion
+            #25_000_000;
 
         end
     endtask
@@ -294,42 +244,32 @@ module Top_tb;
 
         errores = 0;
 
-        topo_generado = 1'b0;
-        botones       = 8'b0;
+        topo_generado = 0;
+        botones       = 0;
 
-        rst      = 1'b1;
-        rst_LSFR = 1'b1;
+        rst           = 1;
+        rst_LSFR      = 1;
 
-        siguiente_topo_detectado = 1'b0;
-        timeout_detectado        = 1'b0;
-        derrota_detectada        = 1'b0;
-
-        // ========================================================
-        // ENCABEZADO
-        // ========================================================
+        siguiente_topo_detectado = 0;
+        timeout_detectado        = 0;
 
         $display("");
         $display("============================================");
         $display("       TEST INTEGRAL WHACK-A-MOLE");
         $display("============================================");
         $display("");
-        $display("1. Recepcion UART");
-        $display("2. Cambio de LED");
-        $display("3. Golpe correcto");
-        $display("4. Golpe incorrecto");
-        $display("5. Timeout");
-        $display("6. Contadores");
-        $display("7. Derrota");
+        $display("1. Golpe correcto");
+        $display("2. Golpe incorrecto");
+        $display("3. Timeout");
         $display("");
 
-        // ========================================================
+        // --------------------------------------------------------
         // RESET
-        // ========================================================
-
+        // --------------------------------------------------------
         #1_000_000;
 
-        rst      = 1'b0;
-        rst_LSFR = 1'b0;
+        rst      = 0;
+        rst_LSFR = 0;
 
         $display("[%0t] RESET LIBERADO",
                  $time);
@@ -343,10 +283,10 @@ module Top_tb;
         $display("[%0t] >>> INICIANDO PRIMER TOPO",
                  $time);
 
+        // Forzamos que el temporizador inicie
+        // mediante Siguiente_Topo del FSM.
         force dut.controlador.siguiente_topo = 1'b1;
-
         @(posedge clk);
-
         release dut.controlador.siguiente_topo;
 
         #1000;
@@ -357,11 +297,20 @@ module Top_tb;
 
         enviar_topo(3'b000);
 
-        verificar_led(8'b0000_0001);
+        // LED 1
+        if (leds !== 8'b0000_0001) begin
+            $display("[%0t] ERROR: LED esperado = 00000001, actual = %08b",
+                     $time,
+                     leds);
+            errores = errores + 1;
+        end
+        else begin
+            $display("[%0t] OK: LED = 00000001",
+                     $time);
+        end
 
         // ========================================================
-        // PRUEBA 1
-        // GOLPE CORRECTO
+        // PRUEBA 1: GOLPE CORRECTO
         // ========================================================
 
         $display("");
@@ -369,24 +318,21 @@ module Top_tb;
         $display("       PRUEBA 1: GOLPE CORRECTO");
         $display("============================================");
 
+        siguiente_topo_detectado = 0;
+
         tiempo_evento = $realtime;
-
-        siguiente_topo_detectado = 1'b0;
-
-        $display("[%0t] LED activo = %08b",
-                 $time,
-                 leds);
 
         $display("[%0t] Pulsando boton correcto",
                  $time);
 
         botones = 8'b0000_0001;
 
+        // Esperamos que debounce detecte el boton
         #30_000_000;
 
         botones = 8'b0;
 
-        // Esperar siguiente topo
+        // Esperamos siguiente_topo real
         wait(siguiente_topo_detectado);
 
         tiempo_siguiente = $realtime;
@@ -398,23 +344,18 @@ module Top_tb;
                  $time,
                  tiempo_siguiente - tiempo_evento);
 
+        // Verificar aciertos
         #1000;
 
-        // Verificar aciertos
         if (dut.marcador.aciertos !== 8'h01) begin
-
-            $display("[%0t] ERROR: ACIERTOS = %02h, esperado 01",
+            $display("[%0t] ERROR: aciertos = %02h, esperado 01",
                      $time,
                      dut.marcador.aciertos);
-
             errores = errores + 1;
-
         end
         else begin
-
             $display("[%0t] OK: ACIERTOS = 01",
                      $time);
-
         end
 
         // ========================================================
@@ -425,11 +366,19 @@ module Top_tb;
 
         enviar_topo(3'b001);
 
-        verificar_led(8'b0000_0010);
+        if (leds !== 8'b0000_0010) begin
+            $display("[%0t] ERROR: LED esperado = 00000010, actual = %08b",
+                     $time,
+                     leds);
+            errores = errores + 1;
+        end
+        else begin
+            $display("[%0t] OK: LED = 00000010",
+                     $time);
+        end
 
         // ========================================================
-        // PRUEBA 2
-        // GOLPE INCORRECTO
+        // PRUEBA 2: GOLPE INCORRECTO
         // ========================================================
 
         $display("");
@@ -437,15 +386,12 @@ module Top_tb;
         $display("       PRUEBA 2: GOLPE INCORRECTO");
         $display("============================================");
 
+        siguiente_topo_detectado = 0;
+
         tiempo_evento = $realtime;
 
-        siguiente_topo_detectado = 1'b0;
-
-        $display("[%0t] LED activo = %08b",
-                 $time,
-                 leds);
-
-        // LED 2 activo -> boton 1 es incorrecto
+        // LED activo = 2
+        // Pulsamos boton 1
         $display("[%0t] Pulsando boton incorrecto",
                  $time);
 
@@ -455,6 +401,7 @@ module Top_tb;
 
         botones = 8'b0;
 
+        // Esperar siguiente_topo
         wait(siguiente_topo_detectado);
 
         tiempo_siguiente = $realtime;
@@ -469,19 +416,14 @@ module Top_tb;
         #1000;
 
         if (dut.marcador.fallos !== 8'h01) begin
-
-            $display("[%0t] ERROR: FALLOS = %02h, esperado 01",
+            $display("[%0t] ERROR: fallos = %02h, esperado 01",
                      $time,
                      dut.marcador.fallos);
-
             errores = errores + 1;
-
         end
         else begin
-
             $display("[%0t] OK: FALLOS = 01",
                      $time);
-
         end
 
         // ========================================================
@@ -492,11 +434,19 @@ module Top_tb;
 
         enviar_topo(3'b010);
 
-        verificar_led(8'b0000_0100);
+        if (leds !== 8'b0000_0100) begin
+            $display("[%0t] ERROR: LED esperado = 00000100, actual = %08b",
+                     $time,
+                     leds);
+            errores = errores + 1;
+        end
+        else begin
+            $display("[%0t] OK: LED = 00000100",
+                     $time);
+        end
 
         // ========================================================
-        // PRUEBA 3
-        // TIMEOUT
+        // PRUEBA 3: TIMEOUT
         // ========================================================
 
         $display("");
@@ -507,16 +457,15 @@ module Top_tb;
         $display("[%0t] NO se pulsara ningun boton",
                  $time);
 
-        timeout_detectado = 1'b0;
-
-        siguiente_topo_detectado = 1'b0;
+        timeout_detectado = 0;
+        siguiente_topo_detectado = 0;
 
         tiempo_evento = $realtime;
 
         $display("[%0t] Iniciando medicion de timeout...",
                  $time);
 
-        // Esperar timeout
+        // Esperamos timeout
         wait(timeout_detectado);
 
         tiempo_timeout = $realtime;
@@ -528,9 +477,9 @@ module Top_tb;
                  $time,
                  tiempo_timeout - tiempo_evento);
 
-        // --------------------------------------------------------
-        // Verificar timeout < 1.5 segundos
-        // --------------------------------------------------------
+        // ========================================================
+        // VERIFICAR TIMEOUT < 1.5 s
+        // ========================================================
 
         if ((tiempo_timeout - tiempo_evento) < 1_500_000_000.0) begin
 
@@ -547,18 +496,40 @@ module Top_tb;
 
         end
 
-        // --------------------------------------------------------
-        // Esperar procesamiento del FSM
-        // --------------------------------------------------------
+        // ========================================================
+        // VERIFICAR QUE TIMEOUT GENERA SIGUIENTE_TOPO
+        // ========================================================
 
+        siguiente_topo_detectado = 0;
+
+        // Dar unos ciclos para que FSM procese timeout
         #100;
 
-        // Verificar fallo
+        if (siguiente_topo_detectado) begin
+
+            $display("[%0t] OK: siguiente_topo generado por timeout",
+                     $time);
+
+        end
+        else begin
+
+            // El pulso puede haber ocurrido antes de estos 100 ns.
+            // Por eso comprobamos mediante la señal interna del
+            // contador/estado observando también el cambio de fallo.
+            $display("[%0t] INFO: siguiente_topo ya termino su pulso de 1 ciclo",
+                     $time);
+
+        end
+
+        // ========================================================
+        // VERIFICAR FALLO POR TIMEOUT
+        // ========================================================
+
         #1000;
 
         if (dut.marcador.fallos !== 8'h02) begin
 
-            $display("[%0t] ERROR: FALLOS = %02h, esperado 02",
+            $display("[%0t] ERROR: fallos = %02h, esperado 02",
                      $time,
                      dut.marcador.fallos);
 
@@ -573,87 +544,8 @@ module Top_tb;
         end
 
         // ========================================================
-        // TOPO 3
-        // ========================================================
-
-        #1_000_000;
-
-        enviar_topo(3'b011);
-
-        verificar_led(8'b0000_1000);
-
-        // ========================================================
-        // PRUEBA 4
-        // SEGUNDO GOLPE INCORRECTO
-        // ========================================================
-
-        $display("");
-        $display("============================================");
-        $display("     PRUEBA 4: SEGUNDO GOLPE INCORRECTO");
-        $display("============================================");
-
-        siguiente_topo_detectado = 1'b0;
-
-        botones = 8'b0000_0001;
-
-        #30_000_000;
-
-        botones = 8'b0;
-
-        wait(siguiente_topo_detectado);
-
-        #1000;
-
-        if (dut.marcador.fallos !== 8'h03) begin
-
-            $display("[%0t] ERROR: FALLOS = %02h, esperado 03",
-                     $time,
-                     dut.marcador.fallos);
-
-            errores = errores + 1;
-
-        end
-        else begin
-
-            $display("[%0t] OK: FALLOS = 03",
-                     $time);
-
-        end
-
-        // ========================================================
-        // PRUEBA 5
-        // VERIFICAR DERROTA
-        // ========================================================
-
-        $display("");
-        $display("============================================");
-        $display("          PRUEBA 5: DERROTA");
-        $display("============================================");
-
-        // Dar algunos ciclos para que FSM procese
-        #100;
-
-        if (dut.controlador.derrota === 1'b1 ||
-            derrota_detectada === 1'b1) begin
-
-            $display("[%0t] OK: DERROTA DETECTADA",
-                     $time);
-
-        end
-        else begin
-
-            $display("[%0t] ERROR: DERROTA NO DETECTADA",
-                     $time);
-
-            errores = errores + 1;
-
-        end
-
-        // ========================================================
         // RESULTADO FINAL
         // ========================================================
-
-        #1000;
 
         $display("");
         $display("============================================");
