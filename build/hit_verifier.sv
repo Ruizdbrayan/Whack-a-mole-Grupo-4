@@ -1,50 +1,73 @@
 module hit_verifier(
-    input  logic [7:0] boton_presionado, // Señal de entrada del boton presionado sincronizada
-    input  logic [7:0] led_encendido,    // Señal de entrada del led activo
+    input  logic       clk,
+    input  logic       rst,
+    input  logic [7:0] boton_presionado,
+    input  logic [7:0] led_encendido,
     input  logic       derrota,
-    output logic       golpe_correcto,   // Señal de salida que indica un golpe correcto
-    output logic       golpe_incorrecto  // Señal de salida que indica un golpe incorrecto
+    output logic       golpe_correcto,
+    output logic       golpe_incorrecto
 );
 
-    logic comparacion;
+    // 0 = esperando una nueva pulsación
+    // 1 = ya se evaluó una pulsación, esperando que se suelte
+    logic boton_bloqueado;
 
-    always_comb begin
+    always_ff @(posedge clk or posedge rst) begin
 
-        golpe_correcto = 1'b0;
-        golpe_incorrecto = 1'b0;
+        if (rst) begin
+            boton_bloqueado <= 1'b0;
+            golpe_correcto  <= 1'b0;
+            golpe_incorrecto <= 1'b0;
+        end
 
-        if (!derrota) begin
+        else begin
 
-            comparacion = (boton_presionado == led_encendido);
+            // Los golpes son pulsos de un solo ciclo
+            golpe_correcto  <= 1'b0;
+            golpe_incorrecto <= 1'b0;
 
-            case (boton_presionado)
+            // =====================================================
+            // ESPERAR A QUE SE SUELTEN TODOS LOS BOTONES
+            // =====================================================
+            if (boton_bloqueado) begin
 
-                8'b0000_0001,
-                8'b0000_0010,
-                8'b0000_0100,
-                8'b0000_1000,
-                8'b0001_0000,
-                8'b0010_0000,
-                8'b0100_0000,
-                8'b1000_0000: begin
+                if (boton_presionado == 8'b0000_0000) begin
+                    boton_bloqueado <= 1'b0;
+                end
 
-                    if (comparacion) begin
-                        golpe_correcto = 1'b1;
-                        golpe_incorrecto = 1'b0;
+            end
+
+            // =====================================================
+            // NUEVA PULSACIÓN
+            // =====================================================
+            else if (boton_presionado != 8'b0000_0000) begin
+
+                // Bloquear hasta que el botón sea soltado
+                boton_bloqueado <= 1'b1;
+
+                // No evaluar golpes durante derrota
+                if (!derrota) begin
+
+                    // =================================================
+                    // BOTÓN CORRECTO
+                    // =================================================
+                    if (boton_presionado == led_encendido) begin
+                        golpe_correcto  <= 1'b1;
+                        golpe_incorrecto <= 1'b0;
                     end
+
+                    // =================================================
+                    // BOTÓN INCORRECTO
+                    // =================================================
                     else begin
-                        golpe_correcto = 1'b0;
-                        golpe_incorrecto = 1'b1;
+                        golpe_correcto  <= 1'b0;
+                        golpe_incorrecto <= 1'b1;
                     end
 
                 end
+            end
 
-                default: begin
-                    golpe_correcto = 1'b0;
-                    golpe_incorrecto = 1'b0;
-                end
-
-            endcase
         end
     end
+
 endmodule
