@@ -13,6 +13,8 @@ module score_tracker (
 );
 
     reg [1:0] fallos_consecutivos;
+    reg derrota_d;
+    wire reiniciar_partida;
 
     // ------------------------------------------------------------------------
     // FUNCIÓN INTERNA: Incrementar BCD con saturación en 99 (8'h99)
@@ -36,13 +38,28 @@ module score_tracker (
     endfunction
 
     // ------------------------------------------------------------------------
+    // DETECION DE CAMBIO DE FLANCO EN DERROTA PARA MANTENER SCORE
+    // ------------------------------------------------------------------------
+    
+    always @(posedge clk) begin
+        if (rst) begin
+            derrota_d <= 1'b0;
+        end 
+        else begin
+            derrota_d <= derrota;
+        end
+    end
+
+    assign reiniciar_partida = derrota_d && !derrota;
+
+    // ------------------------------------------------------------------------
     // REGISTRO SÍNCRONO: Contador de Aciertos Totales (BCD)
     // ------------------------------------------------------------------------
     always @(posedge clk) begin
         if (rst) begin
             aciertos <= 8'h00;
         end 
-        else if (derrota) begin
+        else if (reiniciar_partida) begin
             aciertos <= 8'h00;
         end 
         else if (sumar_acierto) begin
@@ -57,7 +74,7 @@ module score_tracker (
         if (rst) begin
             fallos <= 8'h00;
         end 
-        else if (derrota) begin
+        else if (reiniciar_partida) begin
             fallos <= 8'h00;
         end 
         else if (sumar_fallo) begin
@@ -72,7 +89,7 @@ module score_tracker (
         if (rst) begin
             fallos_consecutivos <= 2'b00;
         end 
-        else if (derrota) begin
+        else if (reiniciar_partida) begin
             fallos_consecutivos <= 2'b00;
         end 
         else if (rst_fallos) begin
