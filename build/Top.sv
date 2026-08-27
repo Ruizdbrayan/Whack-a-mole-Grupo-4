@@ -3,9 +3,8 @@
 module top_whack_a_mole (
     input  logic        clk,
     input  logic        rst,
-    input  logic        rst_LSFR,
     input  logic [7:0]  botones,
-
+    input  logic        topo_generado,
     output logic        led_estado,
     output logic [7:0]  leds,
     output logic [6:0]  display_7seg,
@@ -20,9 +19,9 @@ module top_whack_a_mole (
     logic [7:0] boton_presionado;
 
     logic [7:0] aciertos;
-    logic [7:0] fallos;
+    logic [7:0] fallos;  
 
-    logic topo_generado;
+
 
     logic disminuir_temporizador;
     logic tres_fallos;
@@ -158,7 +157,7 @@ module top_whack_a_mole (
     // =========================================================
     // GENERADOR DE TOPO DE PRUEBA
     // =========================================================
-
+    /*
     logic [2:0] codigo_test;
     logic [7:0] codigo_reg;
 
@@ -268,5 +267,6 @@ module top_whack_a_mole (
     // =========================================================
 
     assign topo_generado = topo_test;
+    */
 
 endmodule
