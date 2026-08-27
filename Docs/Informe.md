@@ -3,25 +3,26 @@
 **Integrantes**
 
 **Steven Sancho Orozco**  
-*Escuela de Ingeniería Electrónica*  
+*Escuela de Ingeniería Electrónica*
+*Tecnológico de Costa Rica*  
 Carné: 2019015506
 
-** NOMBRE **  
+**Dennis Manuel Arce Alvarez**  
+*Escuela de Ingeniería Electrónica*  
+*Tecnológico de Costa Rica*  
+Carné: 2018151568
+
+**Brayan Diaz Ruiz**  
 *Escuela de Ingeniería Electrónica*  
 *Tecnológico de Costa Rica*  
 Carné: 
 
-** NOMBRE **  
+**Joan Franco Sandoval Campos**  
 *Escuela de Ingeniería Electrónica*  
 *Tecnológico de Costa Rica*  
 Carné: 
 
-** NOMBRE **  
-*Escuela de Ingeniería Electrónica*  
-*Tecnológico de Costa Rica*  
-Carné: 
-
-*Fecha : 25/08/2026
+*Fecha : 27/08/2026*
 ---
 
 
