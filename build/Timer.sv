@@ -5,6 +5,7 @@ module timer_module #(
     input  logic rst,
     input  logic disminuir,
     input  logic siguiente_topo,
+    input  logic derrota,
     output logic timeout
 );
 
@@ -15,9 +16,6 @@ module timer_module #(
     logic [31:0] valor_ref;
     logic [3:0] nivel_dificultad;
 
-    logic fin_tiempo;
-    logic contando;
-
     // =========================================================
     // NIVEL DE DIFICULTAD
     // =========================================================
@@ -26,12 +24,12 @@ module timer_module #(
         if (rst) begin
             nivel_dificultad <= 4'd0;
         end
-
+        else if (derrota) begin
+            nivel_dificultad <= 4'd0;
+        end
         else if (disminuir) begin
-
             if (nivel_dificultad < 4'd9)
                 nivel_dificultad <= nivel_dificultad + 1'b1;
-
         end
 
     end
@@ -62,58 +60,36 @@ module timer_module #(
     end
 
     // =========================================================
-    // COMPARADOR
-    // =========================================================
-    always_comb begin
-
-        if (count >= valor_ref - 1)
-            fin_tiempo = 1'b1;
-        else
-            fin_tiempo = 1'b0;
-
-    end
-
-    // =========================================================
-    // CONTADOR
+    // CONTADOR + TIMEOUT
     // =========================================================
     always_ff @(posedge clk or posedge rst) begin
 
         if (rst) begin
-            count   <= 0;
-            contando <= 0;
-        end
-
-        else if (siguiente_topo) begin
-            count    <= 0;
-            contando <= 1;
-        end
-
-        else if (contando) begin
-
-            if (fin_tiempo) begin
-                count    <= 0;
-                contando <= 0;
-            end
-
-            else begin
-                count <= count + 1;
-            end
-
-        end
-
-    end
-
-    // =========================================================
-    // GENERACIÓN DE PULSO DE TIMEOUT
-    // =========================================================
-    always_ff @(posedge clk or posedge rst) begin
-
-        if (rst) begin
-            timeout <= 0;
+            count   <= 32'd0;
+            timeout <= 1'b0;
         end
 
         else begin
-            timeout <= fin_tiempo && contando;
+
+            // Timeout es un pulso de solamente 1 ciclo
+            timeout <= 1'b0;
+
+            // Comienza un nuevo conteo
+            if (siguiente_topo) begin
+                count <= 32'd0;
+            end
+
+            // Conteo activo
+            else if (count < valor_ref) begin
+                count <= count + 1'b1;
+            end
+
+            // Se alcanzó el tiempo
+            else begin
+                timeout <= 1'b1;
+                count   <= 32'd0;
+            end
+
         end
 
     end

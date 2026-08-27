@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module fsm_controller (
     input  logic clk,
     input  logic rst,
@@ -15,125 +17,103 @@ module fsm_controller (
     output logic siguiente_topo
 );
 
-    // =========================================================
-    // CONTADOR DERROTA
-    // =========================================================
     logic [27:0] contador_derrota;
 
-    // =========================================================
-    // DETECTORES DE FLANCO
-    // =========================================================
-    logic golpe_correcto_d;
-    logic golpe_incorrecto_d;
+    localparam integer TIEMPO_DERROTA = 200_000_000;
 
-    logic nuevo_golpe_correcto;
-    logic nuevo_golpe_incorrecto;
-
-    assign nuevo_golpe_correcto =
-           golpe_correcto && !golpe_correcto_d;
-
-    assign nuevo_golpe_incorrecto =
-           golpe_incorrecto && !golpe_incorrecto_d;
-
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or posedge rst) begin
 
         if (rst) begin
 
-            sumar_fallo            <= 0;
-            sumar_acierto          <= 0;
-            rst_fallos             <= 0;
-            derrota                <= 0;
-            disminuir_temporizador <= 0;
-            siguiente_topo         <= 0;
+            sumar_fallo            <= 1'b0;
+            sumar_acierto          <= 1'b0;
+            rst_fallos             <= 1'b0;
+            derrota                <= 1'b0;
+            disminuir_temporizador <= 1'b0;
+            siguiente_topo         <= 1'b0;
 
-            contador_derrota       <= 0;
-
-            golpe_correcto_d       <= 0;
-            golpe_incorrecto_d     <= 0;
+            contador_derrota       <= 28'd0;
 
         end
+
         else begin
 
-            //--------------------------------------------------
-            // REGISTROS DE FLANCO
-            //--------------------------------------------------
-            golpe_correcto_d   <= golpe_correcto;
-            golpe_incorrecto_d <= golpe_incorrecto;
-
-            //--------------------------------------------------
+            // =====================================================
             // PULSOS POR DEFECTO
-            //--------------------------------------------------
-            sumar_fallo            <= 0;
-            sumar_acierto          <= 0;
-            rst_fallos             <= 0;
-            disminuir_temporizador <= 0;
-            siguiente_topo         <= 0;
+            // =====================================================
 
-            //--------------------------------------------------
-            // ESTADO DERROTA
-            //--------------------------------------------------
+            sumar_fallo            <= 1'b0;
+            sumar_acierto          <= 1'b0;
+            rst_fallos             <= 1'b0;
+            disminuir_temporizador <= 1'b0;
+            siguiente_topo         <= 1'b0;
+
+            // =====================================================
+            // DERROTA
+            // =====================================================
+
             if (derrota) begin
 
-                if (contador_derrota < 200_000_000 - 1) begin
-
-                    contador_derrota <= contador_derrota + 1;
-
+                if (contador_derrota < TIEMPO_DERROTA - 1) begin
+                    contador_derrota <= contador_derrota + 1'b1;
                 end
                 else begin
-
                     contador_derrota <= 0;
-                    derrota          <= 0;
-
-                    rst_fallos       <= 1;
-
+                    derrota          <= 1'b0;
+                    rst_fallos       <= 1'b1;
                 end
 
             end
 
-            //--------------------------------------------------
+            // =====================================================
             // JUEGO NORMAL
-            //--------------------------------------------------
+            // =====================================================
+
             else begin
 
-                //----------------------------------------------
+                // -------------------------------------------------
                 // TRES FALLOS
-                //----------------------------------------------
+                // -------------------------------------------------
+
                 if (tres_fallos) begin
 
-                    derrota          <= 1;
+                    derrota          <= 1'b1;
                     contador_derrota <= 0;
 
                 end
 
-                //----------------------------------------------
+                // -------------------------------------------------
                 // TIMEOUT
-                //----------------------------------------------
+                // -------------------------------------------------
+
                 else if (timeout) begin
 
-                    sumar_fallo    <= 1;
-                    siguiente_topo <= 1;
+                    sumar_fallo    <= 1'b1;
+                    siguiente_topo <= 1'b1;
 
                 end
 
-                //----------------------------------------------
-                // GOLPE CORRECTO (FLANCO)
-                //----------------------------------------------
-                else if (nuevo_golpe_correcto) begin
+                // -------------------------------------------------
+                // GOLPE CORRECTO
+                // -------------------------------------------------
 
-                    sumar_acierto          <= 1;
-                    rst_fallos             <= 1;
-                    disminuir_temporizador <= 1;
-                    siguiente_topo         <= 1;
+                else if (golpe_correcto) begin
+
+                    sumar_acierto          <= 1'b1;
+                    rst_fallos             <= 1'b1;
+                    disminuir_temporizador <= 1'b1;
+                    siguiente_topo         <= 1'b1;
 
                 end
 
-                //----------------------------------------------
-                // GOLPE INCORRECTO (FLANCO)
-                //----------------------------------------------
-                else if (nuevo_golpe_incorrecto) begin
+                // -------------------------------------------------
+                // GOLPE INCORRECTO
+                // -------------------------------------------------
 
-                    sumar_fallo    <= 1;
-                    siguiente_topo <= 1;
+                else if (golpe_incorrecto) begin
+
+                    sumar_fallo    <= 1'b1;
+                    siguiente_topo <= 1'b1;
 
                 end
 
