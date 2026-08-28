@@ -7,19 +7,19 @@
 *Tecnológico de Costa Rica*  
 Carné: 2019015506
 
-** NOMBRE **  
-*Escuela de Ingeniería Electrónica*  
-*Tecnológico de Costa Rica*  
-Carné: 
+Joan Franco Sandoval
+Escuela de Ingeniería Electrónica
+Tecnológico de Costa Rica
+Carné: 2020248356
 
-** NOMBRE **  
-*Escuela de Ingeniería Electrónica*  
-*Tecnológico de Costa Rica*  
+Brayan Díaz Ruiz
+Escuela de Ingeniería Electrónica
+Tecnológico de Costa Rica
 Carné: 2018203585
 
-** NOMBRE **  
-*Escuela de Ingeniería Electrónica*  
-*Tecnológico de Costa Rica*  
+Dennis Manuel Arce Alvarez
+Escuela de Ingeniería Electrónica
+Tecnológico de Costa Rica
 Carné: 2018151568
 
 *Fecha : 25/08/2026
@@ -143,15 +143,15 @@ Este es un módulo pequeño que tiene como función principal comunicar al jugad
 
 En este módulo se implementan todos los módulos creados y mencionado hasta este punto, el módulo Top, es el ecnargado de unificar cada subsistema en un sistema única, el cual relaciona las entradas y salidas entre módulos, también se encarga de la lectura y activación de cuando leer y registrar un dato, mediante el flujo de la máquina de estado. Este módulo genera la funcionalidad completa del juego Whack-a-mole
 
-![Ejemplos de display de 7 segmentos](../images/display.png)
+![Ejemplos bloque 1](../images/top1.png)
 
 Para esta primer imagen, la prueba parte de los 7 estados que debe recorrer la lógica, con parámetros previamente definidos, iniciando el proceso con el LED de activación, junto con el topo enviado, además también se asume un golpe correcto.
 
-![Ejemplos de display de 7 segmentos](../images/display.png)
+![Ejemplos bloque 2](../images/top2.png)
 
 En la segunda parte de resultados del testbench se tiene que hay un golpe incorrecto confirmado y la activación del siguiente topo a encender.
 
-![Ejemplos de display de 7 segmentos](../images/display.png)
+![Ejemplos bloque 3](../images/top3.png)
 
 Finalmente se analiza una forma de fallo, que es a través de time out, el cual genera un fallo acumulado en los dos contadores de fallos existentes, seguidamente se prueba con un segundo fallo y para concluir en derrota se genera un tercer fallo activando la señal de derrota y reinicio del juego, elminando y reescribiendo todos los datos a 0
 
