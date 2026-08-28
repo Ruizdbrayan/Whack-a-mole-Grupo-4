@@ -94,7 +94,7 @@ Para el módulo antirebotes, maneja las señales de botones, que es la pulsació
 
 #### Módulo verificador de golpe
 
-En este módulo(hit_verifier) se trabaja la lógica de acierto o fallo al haber presionado un botón, tiene como señales de entrada el reloj de la FPGA, una señal de reset, seguidamente las señales a procesar son “targer_active”, la cual verifica si el hit a botón se registra dentro de la ventana de tiempo del topo activo y finalmente la señal de “button_press” que es enviada desde el módulo button_debouncer_receptor, en la salida se obtiene la señal de “hit_valid” que toma como correcto o incorrecto el hit y otra señal de “miss_flag”, señalando un fallo, las 4 señales anteriormente mencionadas tienen un tamaño de 1b
+En este módulo(hit_verifier) se trabaja la lógica de acierto o fallo al haber presionado un botón, tiene como señales de entrada el reloj de la FPGA, una señal de reset, seguidamente las señales a procesar son “targer_active”, la cual verifica si el hit a botón se registra dentro de la ventana de tiempo del topo activo y finalmente la señal de “button_press” que es enviada desde el módulo button_debouncer_receptor, en la salida se obtiene la señal de “hit_valid” que toma como correcto o incorrecto el hit y otra señal de “miss_flag”, señalando un fallo, las 4 señales anteriormente mencionadas tienen un tamaño de 1b.
 
 ![modulo test bench del hit_verifier](../images/hit_verifier.png)
 
@@ -110,7 +110,7 @@ En la Ventana del Waveform se observa claramente el flujo del juego Whack-a-mole
 
 #### Módulo de máquina de estados
 
-En el momento de iniciar una partida se aclara que al acumular aciertos las ventanas de tiempo entre topos se irán reduciendo de 2s hasta los 0.5s, con saltos específicos de 100ms entre nivel con un total de 10 niveles de dificultad, este requisito lo satisface el módulo Timer.sv, el cual cambia los niveles de dificultad con un comparador y un contador para verificar cuando reducir la ventana de tiempo
+En el momento de iniciar una partida se aclara que al acumular aciertos las ventanas de tiempo entre topos se irán reduciendo de 2s hasta los 0.5s, con saltos específicos de 100ms entre nivel con un total de 10 niveles de dificultad, este requisito lo satisface el módulo Timer.sv, el cual cambia los niveles de dificultad con un comparador y un contador para verificar cuando reducir la ventana de tiempo.
 
 #### Módulo de rastreo de puntajes
 
@@ -122,11 +122,11 @@ En este test se encarga del conteo de aciertos, tomando en cuenta el acarreo por
 
 ![Caso 2 del test bench del score tracker](../images/score_tracker_2.png)
 
-Para el Segundo test se prueban los fallos consecutivos y en el bloque final se especifica el acumulado de hasta 3 fallos, que genera un flag de derrota,
+Para el Segundo test se prueban los fallos consecutivos y en el bloque final se especifica el acumulado de hasta 3 fallos, que genera un flag de derrota.
 
 ![Caso 3 del test bench del score tracker](../images/score_tracker_3.png)
 
-Finalmente para el caso 3 donde se prueba la limpieza de fallos consecutivos después de un acierto. Para todas las pruebas están controladas y sincronizadas por un reloj interno fijo para todos los módulos 
+Finalmente para el caso 3 donde se prueba la limpieza de fallos consecutivos después de un acierto. Para todas las pruebas están controladas y sincronizadas por un reloj interno fijo para todos los módulos. 
 
 #### Módulo de 7 segmentos
 
@@ -141,7 +141,7 @@ Este es un módulo pequeño que tiene como función principal comunicar al jugad
 
 #### Módulo TOP
 
-En este módulo se implementan todos los módulos creados y mencionado hasta este punto, el módulo Top, es el ecnargado de unificar cada subsistema en un sistema única, el cual relaciona las entradas y salidas entre módulos, también se encarga de la lectura y activación de cuando leer y registrar un dato, mediante el flujo de la máquina de estado. Este módulo genera la funcionalidad completa del juego Whack-a-mole
+En este módulo se implementan todos los módulos creados y mencionado hasta este punto, el módulo Top, es el ecnargado de unificar cada subsistema en un sistema única, el cual relaciona las entradas y salidas entre módulos, también se encarga de la lectura y activación de cuando leer y registrar un dato, mediante el flujo de la máquina de estado. Este módulo genera la funcionalidad completa del juego Whack-a-mole.
 
 ![Ejemplos bloque 1](../images/top1.png)
 
@@ -153,7 +153,7 @@ En la segunda parte de resultados del testbench se tiene que hay un golpe incorr
 
 ![Ejemplos bloque 3](../images/top3.png)
 
-Finalmente se analiza una forma de fallo, que es a través de time out, el cual genera un fallo acumulado en los dos contadores de fallos existentes, seguidamente se prueba con un segundo fallo y para concluir en derrota se genera un tercer fallo activando la señal de derrota y reinicio del juego, elminando y reescribiendo todos los datos a 0
+Finalmente se analiza una forma de fallo, que es a través de time out, el cual genera un fallo acumulado en los dos contadores de fallos existentes, seguidamente se prueba con un segundo fallo y para concluir en derrota se genera un tercer fallo activando la señal de derrota y reinicio del juego, elminando y reescribiendo todos los datos a 0.
 
 ---
 
