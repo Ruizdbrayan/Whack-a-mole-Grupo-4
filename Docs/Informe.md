@@ -7,19 +7,19 @@
 *Tecnológico de Costa Rica*  
 Carné: 2019015506
 
-Joan Franco Sandoval
-Escuela de Ingeniería Electrónica
-Tecnológico de Costa Rica
+**Joan Franco Sandoval**
+*Escuela de Ingeniería Electrónica*
+*Tecnológico de Costa Rica*
 Carné: 2020248356
 
-Brayan Díaz Ruiz
-Escuela de Ingeniería Electrónica
-Tecnológico de Costa Rica
+**Brayan Díaz Ruiz**
+*Escuela de Ingeniería Electrónica*
+*Tecnológico de Costa Rica*
 Carné: 2018203585
 
-Dennis Manuel Arce Alvarez
-Escuela de Ingeniería Electrónica
-Tecnológico de Costa Rica
+**Dennis Manuel Arce Alvarez**
+*Escuela de Ingeniería Electrónica*
+*Tecnológico de Costa Rica*
 Carné: 2018151568
 
 *Fecha : 25/08/2026
@@ -39,7 +39,7 @@ Primeramente, no hay manera de “ganar” el juego, se registrarán los acierto
 Para comprender la elaboración de la arquitectura y circuito para el juego Whack-a-mole es importante tener varios conceptos presentes.empezando por un modelado de comportamiento, el cual describe el funcionamiento del ciercuito, con la debida implementación, por otra parte está la estructura del diseño, la cual describe las conexiones físicas del diseño, ya sea como para la parte discreta como para la comunicación entre la FPGA y el circuito discreto.
 Las buenas prácticas de diseño parten de un diseño modular donde se describe el proyecto a gran escala hasta llegar a la lógica detrás de cada módulo implementado con VIVADO, quien traduce la lógica en un circuito, los cuales cumplen funciones indispensables para el funcionamiento del juego, incluyendo lógica de máquinas de estados, decodificadores, debouncer entre otros, los cuales manejan señales físicas, funcionando bajo un reloj de la FPGA establecido en 100MHz, mientras en el ASIC la lógica está dad por compuertas que manejar la aleatoriedad del topo activo.
 En el proyecto se construye un circuito  con una parte discreta la cual incluye compuertas, LED´s, botones y temporizadores, los cuales comunican datos con la parte digital del circuito, en la FPGA, la cual sioncroniza los pines de entrada y salida, las cuales van a ser el medio de trabajo de los módulos, recibiendo señales como las pulsaciones de los botones y el reset del juego y enviando señales de topo activo y puntaje de aciertos y fallos en los display de 7 segmentos.
-Es necesario para la elaboración del juego Whack-a-mole diferenciar entre la máquina de estados finitos de Mealy y Moore. En el funcionamiento de una máquina de Moore, la salida solo depende del estado actual, mientras que el funcionamiento de una máquina de Mealy la salida depende del estado actual y las entradas 
+Es necesario para la elaboración del juego Whack-a-mole diferenciar entre la máquina de estados finitos de Mealy y Moore. En el funcionamiento de una máquina de Moore, la salida solo depende del estado actual, mientras que el funcionamiento de una máquina de Mealy la salida depende del estado actual y las entradas .
 
 ![Máquina de Mealy aplicada al proyecto](../images/fsm_Mealy.png)
 
